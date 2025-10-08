@@ -38,3 +38,6 @@ But how be block bot born? Thus, this program. It takes in an audio-format song,
 
 
 # Language: Go. You Know, Why Not?
+Conveniently, around the time I was writing out the .readme for this program, I heard of a certain talk at one of the many networking events I go to. (I Go to a lot of networking events because I have no job)
+The talk is about "MCP and AG-UI protocols along with LangChain to build an AI powered workflow Python."
+Un-conveniently, I have no idea what any of those mean.
