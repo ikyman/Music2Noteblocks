@@ -36,6 +36,9 @@ But how be block bot born? Thus, this program. It takes in an audio-format song,
 1. Minecraft music is .oog. Seeing as this is a program by Minecraft, for Minecraft, it makes sence for that to be the training data. Furthermore, Minecraft is a popular enough game such that sheet music is likely readily available.
 2. Wikipedia (mostly) uses .ogg. If I need to "jazz up: my training data, I doubt it'll be hard to find sheet music for "Ode To Joy" (https://en.wikipedia.org/wiki/Ode_to_Joy)
 
+# Notes on training Data.
+Minecraft's time is based off of ticks. 20 Ticks make a second. 10 ticks is 200 seconds. If the end result is a noteblock note for each tick, the end result of my AI is a 200-second vector, with each entry denoting the note played during that particular tick.
+200 is a large vector size. It's big enough. Thus, this Gizmo will also read in only 10 seconds of song at at time. This prevents my Gizmo from getting too complacient about song size. 
 
 # Language: Go. You Know, Why Not?
 Conveniently, around the time I was writing out the .readme for this program, I heard of a certain talk at one of the many networking events I go to. (I Go to a lot of networking events because I have no job)
