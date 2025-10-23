@@ -13,22 +13,18 @@ import(
 	"path/filepath"
 )
 
-func sliceBySeconds (s beep.Streamer, f beep.Format, startLoc float32 , endLoc float32 ){
-	newBuffer := beep.NewBuffer(f);
-	newBuffer.Append(s);
-	streamSeekClo := newBuffer.Streamer(int(startLoc), int(endLoc));
-	//defer streamSeekClo.Close()
-	
-	speaker.Init(f.SampleRate, f.SampleRate.N(time.Second/10))
 
-	speaker.Play(streamSeekClo)
-
-	select {}
-
+func bufferSubsection (buff beep.Buffer, f beep.Format, startLoc float32 , endLoc float32 ) (beep.Streamer){
+	subsectionBuffer := beep.NewBuffer(f);
+	fullStream := buff.Streamer(0, buff.Len())
+	subsectionBuffer.Append(fullStream);
+	subsecStart := (f.SampleRate.N(time.Millisecond*time.Duration(int(1000*startLoc))));
+	subsecEnd := (f.SampleRate.N(time.Millisecond*time.Duration(int(1000*endLoc))));
+	return subsectionBuffer.Streamer(subsecStart, subsecEnd);
 }
 
 // Note to self: Go find the codingGuru best practice for this sort of thing. Command? Visitor?
-func loadAudioFileOgg(oggFile string ) (beep.Streamer, beep.Format) {
+func loadAudioFileOgg(oggFile string ) (*beep.Buffer, beep.Format) {
 	f, err := os.Open(oggFile)
 	if err != nil {
 		log.Fatal(err)
@@ -39,29 +35,10 @@ func loadAudioFileOgg(oggFile string ) (beep.Streamer, beep.Format) {
 	}
 	defer streamSeekClo.Close()
 
-
 	newBuffer := beep.NewBuffer(format);
 	newBuffer.Append(streamSeekClo);
-	fmt.Println("format Width= " , format.Width())
-	fmt.Println("How big is my new buffer?", newBuffer.Len())
-	snippitStart := format.SampleRate.N(time.Second*10);
-	snippitEnd := format.SampleRate.N(time.Second*20);
-	fmt.Println("Should GO from ", snippitStart, " to  ", snippitEnd);
-	streamSeek := newBuffer.Streamer(snippitStart, snippitEnd);
-	fmt.Println("How big is my new streamer?", streamSeek.Len())
 	
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-	// fmt.Println("This should play the whole thing")
-	// speaker.Play(streamSeekClo)
-
-	fmt.Println("This should play a snippit")
-	speaker.Play(streamSeek)
-
-	select {}
-	//defer streamSeekClo.Close()
-	
-	return streamSeekClo, format;
+	return newBuffer, format;
 }
 
 func main() {
@@ -74,8 +51,13 @@ func main() {
 	oggAbsPath, _ := filepath.Abs("./TrainingTesting/trainingOggs/shop1DeltaRune.ogg") 
 	fmt.Println(oggAbsPath)
 
-	s, f := loadAudioFileOgg(oggAbsPath)
+	b, f := loadAudioFileOgg(oggAbsPath)
 
-	sliceBySeconds ( s, f, 10, 20);
+	littleSection := bufferSubsection ( *b, f, 10, 20);
 
+	speaker.Init(f.SampleRate, f.SampleRate.N(time.Second/10))
+
+	speaker.Play(littleSection)
+
+	select {}
 }
