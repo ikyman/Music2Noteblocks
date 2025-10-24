@@ -1,5 +1,5 @@
 
-package main
+package utilitiesBeep
 
 import(
 	"fmt"
@@ -14,7 +14,7 @@ import(
 )
 
 
-func bufferSubsection (buff beep.Buffer, f beep.Format, startLoc float32 , endLoc float32 ) (beep.Streamer){
+func BufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc float32 ) (beep.Streamer){
 	subsectionBuffer := beep.NewBuffer(f);
 	fullStream := buff.Streamer(0, buff.Len())
 	subsectionBuffer.Append(fullStream);
@@ -24,7 +24,7 @@ func bufferSubsection (buff beep.Buffer, f beep.Format, startLoc float32 , endLo
 }
 
 // Note to self: Go find the codingGuru best practice for this sort of thing. Command? Visitor?
-func loadAudioFileOgg(oggFile string ) (*beep.Buffer, beep.Format) {
+func LoadAudioFileOgg(oggFile string ) (*beep.Buffer, beep.Format) {
 	f, err := os.Open(oggFile)
 	if err != nil {
 		log.Fatal(err)
@@ -51,9 +51,9 @@ func main() {
 	oggAbsPath, _ := filepath.Abs("./TrainingTesting/trainingOggs/shop1DeltaRune.ogg") 
 	fmt.Println(oggAbsPath)
 
-	b, f := loadAudioFileOgg(oggAbsPath)
+	b, f := LoadAudioFileOgg(oggAbsPath)
 
-	littleSection := bufferSubsection ( *b, f, 10, 20);
+	littleSection := BufferSubsection ( *b, f, 10, 20);
 
 	speaker.Init(f.SampleRate, f.SampleRate.N(time.Second/10))
 

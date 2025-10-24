@@ -1,10 +1,10 @@
 
 package main
 
-import(
+/*import(
 	"fmt"
-)
+)*/
 
-func main (){
+/*func main (){
 	fmt.Println("Hello World! (Go is oddly hard to get set up)");
-}
+}*/
