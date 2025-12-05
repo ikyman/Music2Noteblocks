@@ -2,7 +2,6 @@ package main
 
 import(
 	"fmt"
-	"gioui.org/app"
 	"os"
 	"github.com/sqweek/dialog"
 	"log"
@@ -10,27 +9,19 @@ import(
 	"time"
 	"NoteblockRobot/Util"
 	"github.com/gopxl/beep/v2"
+	"github.com/gopxl/beep/v2/speaker"
 
+	"gioui.org/app"
+	"gioui.org/op"
+	"gioui.org/layout"
+	"gioui.org/widget/material"
+	"gioui.org/widget"
 )
 
 type songSegment  struct{
 	segment beep.Streamer
 	beginLoc float32
 	endLoc float32
-}
-
-type segmentButton struct{
-	songSeg songSegment
-	songButt widget.Clickable
-}
-
-func  newSegmentButton(segment beep.Streamer, beginLoc float32, endLoc float32) segmentButton{
-	nsb := new(segmentButton);
-	nsb.songSeg := newSongSegment(segment beep.Streamer, beginLoc float32, endLoc float32);
-	var newButton widget.Clickable;
-	nsb.songButt := newButton
-
-	return *nsb
 }
 
 func newSongSegment(segment beep.Streamer, beginLoc float32, endLoc float32) songSegment{
@@ -40,6 +31,34 @@ func newSongSegment(segment beep.Streamer, beginLoc float32, endLoc float32) son
 	nss.endLoc = endLoc;
 	return *nss
 }
+
+type segmentButton struct{
+	songSeg songSegment
+	songButt widget.Clickable
+}
+
+func newSegmentButton(segment beep.Streamer, beginLoc float32, endLoc float32) segmentButton{
+	nsb := new(segmentButton);
+	nsb.songSeg = newSongSegment(segment, beginLoc, endLoc);
+	var newButton widget.Clickable;
+	nsb.songButt = newButton
+
+	return *nsb
+}
+
+func (sb *segmentButton) drawButton (buttonContext layout.Context) layout.Dimensions{
+	th := material.NewTheme()
+	buttonVisual := material.Button(th, &sb.songButt, fmt.Sprintf("From %d to %d" , sb.songSeg.beginLoc, sb.songSeg.endLoc )  )
+	return buttonVisual.Layout(buttonContext)
+}
+
+func (sb *segmentButton) handleClicks(clickTracker layout.Context){
+	if sb.songButt.Clicked(clickTracker){
+		speaker.Play(sb.songSeg.segment)	
+		fmt.Println("button clicked!")
+	}
+}
+
 
 func main(){
 	fmt.Println("Hello World! (Go is oddly hard to get set up)");
@@ -52,26 +71,21 @@ func main(){
 
 	fullSong, format := utilitiesBeep.LoadAudioFileOgg(filename);
 
-	totalSongSeconds := fullSong.Len()/format.SampleRate.N(time.Second)
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
-	all10Subsections := make([]segmentButton,1)
+	buttons10SecondSubsects := make([]segmentButton,0)
 
 	for i:= 0 ; i * format.SampleRate.N(time.Second)  < fullSong.Len(); i +=10{
-		go func(){
-			endLoc := i + 10;
-			additional10Secs := fullSong.Streamer(i, endLoc)
-			nss := newSongSegment (additional10Secs, float32(i), float32(endLoc))
-			all10Subsections = append(all10Subsections, nss);
-			fmt.Println("Appended!");
-		}()
+		// Sync Waitgroup? Unescissary!
+		endLoc := i + 10;
+		additional10Secs := fullSong.Streamer(i, endLoc)
+		nss := newSegmentButton(additional10Secs, float32(i), float32(endLoc))
+		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
 	}
 
-	for i, v := range(all10Subsections){
-		fmt.Println("Index ", i,  " starts at", v.beginLoc );
+	for i, v := range(buttons10SecondSubsects){
+		fmt.Println("Index ", i,  " starts at", v.songSeg.beginLoc );
 	}
-
-
-	fmt.Println("This Song is ", totalSongSeconds, "Seconds long, ")//it will be sliced into ", , " subsections. Put together, it's", ,  " seconds")
 
 	go func(){
 		w := new(app.Window)
@@ -80,10 +94,20 @@ func main(){
 		for {
 			evt := w.Event()
 
-
 			switch typ := evt.(type){
 			case app.FrameEvent:
-				lyoutCntxt = w.NewContext(& ops, typ)
+				flexContext := app.NewContext( ops, typ)
+				clickTracker := layout.Context{Ops : ops}
+				var flexPosting layout.Flex
+				buttonDims:= make([]layout.FlexChild,0)
+
+				for _, button := range(buttons10SecondSubsects){
+					button.handleClicks(clickTracker);
+					buttonDims = append(buttonDims, layout.Flexed(1, button.drawButton ) )
+				} 
+				flexPosting.Layout(flexContext, buttonDims... )
+
+				typ.Frame(ops)
 
 			case app.DestroyEvent:
 				fmt.Println(typ);
