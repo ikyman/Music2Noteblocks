@@ -1,0 +1,14 @@
+Bass: wood
+Snare: Gravel
+Click,Sticks: Glass
+Bass Drum: Stone
+Bell: Gold
+Flute: Clay
+Chimes: PackedIce
+Guitar: wool
+Xylopohne: Bone
+Vibraphone: Iron
+Cow Bell: soul sand
+8Bit: Block of emerals
+Banjo: Hay Bale
+Electric Piano: Glowston2

@@ -3,13 +3,16 @@ package main
 import(
 	"fmt"
 	"os"
-	"github.com/sqweek/dialog"
 	"log"
 	"path/filepath"
 	"time"
+	
+	"github.com/sqweek/dialog"
 	"NoteblockRobot/Util"
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/speaker"
+
+	"image/color"
 
 	"gioui.org/app"
 	"gioui.org/op"
@@ -17,6 +20,7 @@ import(
 	"gioui.org/widget/material"
 	"gioui.org/widget"
 )
+
 
 type songSegment  struct{
 	segment beep.Streamer
@@ -61,8 +65,9 @@ func (sb *segmentButton) handleClicks(clickTracker layout.Context){
 
 
 func main(){
-	fmt.Println("Hello World! (Go is oddly hard to get set up)");
-	
+	var labelTheme = material.NewTheme()
+	labelTheme.Palette = material.Palette{Bg : color.NRGBA{R: 100, G:0, B: 0, A:255}, Fg:color.NRGBA{R: 0, G:0, B: 0, A:255}  } 
+
 	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
 	filename, err := dialog.File().SetStartDir(absFilepath).Load()
 	if err != nil {
@@ -83,10 +88,6 @@ func main(){
 		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
 	}
 
-	for i, v := range(buttons10SecondSubsects){
-		fmt.Println("Index ", i,  " starts at", v.songSeg.beginLoc );
-	}
-
 	go func(){
 		w := new(app.Window)
 		ops := new(op.Ops)
@@ -97,6 +98,10 @@ func main(){
 			switch typ := evt.(type){
 			case app.FrameEvent:
 				flexContext := app.NewContext( ops, typ)
+
+				labelTop := layout.Flex{Axis : layout.Vertical}
+				//var buttonSegregator layout.Flex
+				//var tenSeconds layout.List
 				clickTracker := layout.Context{Ops : ops}
 				var flexPosting layout.Flex
 				buttonDims:= make([]layout.FlexChild,0)
@@ -105,7 +110,10 @@ func main(){
 					button.handleClicks(clickTracker);
 					buttonDims = append(buttonDims, layout.Flexed(1, button.drawButton ) )
 				} 
-				flexPosting.Layout(flexContext, buttonDims... )
+
+				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, "absFilepath").Layout), 
+				layout.Flexed( 5,  func(gtx layout.Context)layout.Dimensions{ return  flexPosting.Layout(gtx, buttonDims... ) } ),
+				)
 
 				typ.Frame(ops)
 
