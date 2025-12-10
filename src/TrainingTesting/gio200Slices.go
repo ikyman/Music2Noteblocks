@@ -21,6 +21,22 @@ import(
 	"gioui.org/widget"
 )
 
+// Application themes - initialized once, accessible throughout the package
+var (
+	labelTheme  *material.Theme
+	buttonTheme *material.Theme
+)
+
+func init() {
+	// Initialize themes once at package load time
+	labelTheme = material.NewTheme()
+	labelTheme.Palette = material.Palette{
+		Bg: color.NRGBA{R: 100, G: 0, B: 0, A: 255},
+		Fg: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+	}
+	
+	buttonTheme = material.NewTheme()
+}
 
 type songSegment  struct{
 	segment beep.Streamer
@@ -50,24 +66,19 @@ func newSegmentButton(segment beep.Streamer, beginLoc float32, endLoc float32) s
 	return *nsb
 }
 
-func (sb *segmentButton) drawButton (buttonContext layout.Context) layout.Dimensions{
-	th := material.NewTheme()
-	buttonVisual := material.Button(th, &sb.songButt, fmt.Sprintf("From %d to %d" , sb.songSeg.beginLoc, sb.songSeg.endLoc )  )
+func (sb *segmentButton) drawButton(buttonContext layout.Context) layout.Dimensions{
+	buttonVisual := material.Button(buttonTheme, &sb.songButt, fmt.Sprintf("From %d to %d" , sb.songSeg.beginLoc, sb.songSeg.endLoc )  )
 	return buttonVisual.Layout(buttonContext)
 }
 
 func (sb *segmentButton) handleClicks(clickTracker layout.Context){
-	if sb.songButt.Clicked(clickTracker){
-		speaker.Play(sb.songSeg.segment)	
-		fmt.Println("button clicked!")
+	if sb.songButt.Clicked(clickTracker){	
+		speaker.Play(sb.songSeg.segment)
 	}
 }
 
 
 func main(){
-	var labelTheme = material.NewTheme()
-	labelTheme.Palette = material.Palette{Bg : color.NRGBA{R: 100, G:0, B: 0, A:255}, Fg:color.NRGBA{R: 0, G:0, B: 0, A:255}  } 
-
 	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
 	filename, err := dialog.File().SetStartDir(absFilepath).Load()
 	if err != nil {
@@ -84,9 +95,15 @@ func main(){
 		// Sync Waitgroup? Unescissary!
 		endLoc := i + 10;
 		additional10Secs := fullSong.Streamer(i, endLoc)
+		speaker.Play(additional10Secs)
 		nss := newSegmentButton(additional10Secs, float32(i), float32(endLoc))
 		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
 	}
+
+	tenSeconds := layout.List{Axis : layout.Vertical}
+	listed10SecButtons := func(listContext layout.Context)layout.Dimensions{ return tenSeconds.Layout(listContext, len(buttons10SecondSubsects), 
+		func(gtx layout.Context, index int) layout.Dimensions{ return buttons10SecondSubsects[index].drawButton(gtx) }) }
+
 
 	go func(){
 		w := new(app.Window)
@@ -98,23 +115,17 @@ func main(){
 			switch typ := evt.(type){
 			case app.FrameEvent:
 				flexContext := app.NewContext( ops, typ)
+				for i, _ := range(buttons10SecondSubsects){
+					buttons10SecondSubsects[i].handleClicks(flexContext)
+				}
 
 				labelTop := layout.Flex{Axis : layout.Vertical}
 				//var buttonSegregator layout.Flex
-				//var tenSeconds layout.List
-				clickTracker := layout.Context{Ops : ops}
-				var flexPosting layout.Flex
-				buttonDims:= make([]layout.FlexChild,0)
-
-				for _, button := range(buttons10SecondSubsects){
-					button.handleClicks(clickTracker);
-					buttonDims = append(buttonDims, layout.Flexed(1, button.drawButton ) )
-				} 
-
-				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, "absFilepath").Layout), 
-				layout.Flexed( 5,  func(gtx layout.Context)layout.Dimensions{ return  flexPosting.Layout(gtx, buttonDims... ) } ),
+				//clickTracker := layout.Context{Ops : ops}
+				//var flexPosting layout.Flex
+				
+				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, "absFilepath").Layout), layout.Flexed(1, listed10SecButtons) ,
 				)
-
 				typ.Frame(ops)
 
 			case app.DestroyEvent:
