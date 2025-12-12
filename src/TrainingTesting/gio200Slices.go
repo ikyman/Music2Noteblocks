@@ -24,7 +24,12 @@ import(
 // Application themes - initialized once, accessible throughout the package
 var (
 	labelTheme  *material.Theme
-	buttonTheme *material.Theme
+	select10SecTheme *material.Theme
+	play10SecTheme *material.Theme
+	playTickTheme *material.Theme
+
+	singletonAudioBuffer *beep.Buffer
+	singletonAudioFormat *beep.Format
 )
 
 func init() {
@@ -35,45 +40,52 @@ func init() {
 		Fg: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 	}
 	
-	buttonTheme = material.NewTheme()
+	select10SecTheme = material.NewTheme()
+
+	play10SecTheme = material.NewTheme()
+	play10SecTheme.Palette.Bg = color.NRGBA{R: 200, G: 255, B: 200, A: 255}
+
+	playTickTheme = material.NewTheme()
 }
 
-type songSegment  struct{
-	segment beep.Streamer
-	beginLoc float32
-	endLoc float32
+func getSamplesInTick() int{
+	if singletonAudioFormat == nil{
+		log.Fatal("Cannot Calculate Sample Without a format")
+	}
+
+	return singletonAudioFormat.SampleRate.N(time.Millisecond*time.Duration(50));
+}
+func getSamplesIn10Seconds() int{
+	return 200 * getSamplesInTick()
 }
 
-func newSongSegment(segment beep.Streamer, beginLoc float32, endLoc float32) songSegment{
-	nss := new(songSegment)
-	nss.segment = segment;
-	nss.beginLoc = beginLoc;
-	nss.endLoc = endLoc;
-	return *nss
+
+type segment10Seconds struct{
+	beginLoc int
+	endLoc int
+	select10Sec widget.Clickable;
+	play10Sec widget.Clickable
 }
 
-type segmentButton struct{
-	songSeg songSegment
-	songButt widget.Clickable
-}
-
-func newSegmentButton(segment beep.Streamer, beginLoc float32, endLoc float32) segmentButton{
-	nsb := new(segmentButton);
-	nsb.songSeg = newSongSegment(segment, beginLoc, endLoc);
-	var newButton widget.Clickable;
-	nsb.songButt = newButton
+func newSegment10Seconds(beginLoc int, endLoc int) segment10Seconds{
+	nsb := new(segment10Seconds);
+	nsb.beginLoc = beginLoc
+	nsb.endLoc = endLoc
 
 	return *nsb
 }
 
-func (sb *segmentButton) drawButton(buttonContext layout.Context) layout.Dimensions{
-	buttonVisual := material.Button(buttonTheme, &sb.songButt, fmt.Sprintf("From %d to %d" , sb.songSeg.beginLoc, sb.songSeg.endLoc )  )
+func (s10s *segment10Seconds) drawButtons(buttonContext layout.Context) layout.Dimensions{
+	buttonVisual := material.Button(select10SecTheme, &s10s.select10Sec, fmt.Sprintf("From %d to %d" , s10s.beginLoc, s10s.endLoc )  )
+	// material.Button(play10SecTheme, &sb.songButt, "Listen" )
+
 	return buttonVisual.Layout(buttonContext)
 }
 
-func (sb *segmentButton) handleClicks(clickTracker layout.Context){
-	if sb.songButt.Clicked(clickTracker){	
-		speaker.Play(sb.songSeg.segment)
+func (s10s *segment10Seconds) handleClicks(clickTracker layout.Context){
+	if s10s.select10Sec.Clicked(clickTracker){	
+		fmt.Println("No longer my Job!")
+		//speaker.Play(sb.songSeg.segment)
 	}
 }
 
@@ -85,24 +97,24 @@ func main(){
 		log.Fatal(err)
 	}
 
-	fullSong, format := utilitiesBeep.LoadAudioFileOgg(filename);
+	var format beep.Format
+	singletonAudioBuffer, format = utilitiesBeep.LoadAudioFileOgg(filename)
+	singletonAudioFormat = &format
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+	speaker.Init(singletonAudioFormat.SampleRate, singletonAudioFormat.SampleRate.N(time.Second/10))
 
-	buttons10SecondSubsects := make([]segmentButton,0)
+	buttons10SecondSubsects := make([]segment10Seconds,0)
 
-	for i:= 0 ; i * format.SampleRate.N(time.Second)  < fullSong.Len(); i +=10{
+	for i:= 0 ; i  < singletonAudioBuffer.Len(); i += getSamplesIn10Seconds(){
 		// Sync Waitgroup? Unescissary!
-		endLoc := i + 10;
-		additional10Secs := fullSong.Streamer(i, endLoc)
-		speaker.Play(additional10Secs)
-		nss := newSegmentButton(additional10Secs, float32(i), float32(endLoc))
+		endLoc := i + getSamplesIn10Seconds()
+		nss := newSegment10Seconds( i , endLoc)
 		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
 	}
 
 	tenSeconds := layout.List{Axis : layout.Vertical}
 	listed10SecButtons := func(listContext layout.Context)layout.Dimensions{ return tenSeconds.Layout(listContext, len(buttons10SecondSubsects), 
-		func(gtx layout.Context, index int) layout.Dimensions{ return buttons10SecondSubsects[index].drawButton(gtx) }) }
+		func(gtx layout.Context, index int) layout.Dimensions{ return buttons10SecondSubsects[index].drawButtons(gtx) }) }
 
 
 	go func(){
@@ -120,12 +132,14 @@ func main(){
 				}
 
 				labelTop := layout.Flex{Axis : layout.Vertical}
-				//var buttonSegregator layout.Flex
+				buttonSegregator := func(gtx layout.Context) layout.Dimensions{ return layout.Flex{}.Layout(gtx,  layout.Flexed(1, listed10SecButtons)) }
 				//clickTracker := layout.Context{Ops : ops}
 				//var flexPosting layout.Flex
-				
-				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, "absFilepath").Layout), layout.Flexed(1, listed10SecButtons) ,
+
+								
+				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, "absFilepath").Layout), layout.Flexed(1, buttonSegregator),
 				)
+
 				typ.Frame(ops)
 
 			case app.DestroyEvent:
