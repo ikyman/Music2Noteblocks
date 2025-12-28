@@ -19,7 +19,9 @@ func BufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc
 	fullStream := buff.Streamer(0, buff.Len())
 	subsectionBuffer.Append(fullStream);
 	subsecStart := (f.SampleRate.N(time.Millisecond*time.Duration(int(1000*startLoc))));
+	subsecStart = max(0, subsecStart)
 	subsecEnd := (f.SampleRate.N(time.Millisecond*time.Duration(int(1000*endLoc))));
+	subsecEnd = min(buff.Len(), subsecEnd)
 	return subsectionBuffer.Streamer(subsecStart, subsecEnd);
 }
 
