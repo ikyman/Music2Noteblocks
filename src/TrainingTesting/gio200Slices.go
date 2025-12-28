@@ -59,8 +59,8 @@ func getSamplesInTick() int{
 
 	return singletonAudioFormat.SampleRate.N(time.Millisecond*time.Duration(50));
 }
-func getSamplesIn10Seconds() int{
-	return 200 * getSamplesInTick()
+func getSamplesInSeconds(seconds int) int{
+	return 20 * seconds * getSamplesInTick()
 }
 
 type segment10Seconds struct{
@@ -70,6 +70,8 @@ type segment10Seconds struct{
 	play10Sec widget.Clickable
 
 	tickButtons [][]widget.Clickable
+	secondsList layout.List
+	tickLists []layout.List
 }
 
 func newSegment10Seconds(beginLoc int, endLoc int) segment10Seconds{
@@ -77,8 +79,10 @@ func newSegment10Seconds(beginLoc int, endLoc int) segment10Seconds{
 	nsb.beginLoc = beginLoc
 	nsb.endLoc = endLoc
 	nsb.tickButtons = make([][]widget.Clickable, 10)
+	nsb.tickLists = make([]layout.List, 10)
 	for sec:=0; sec < 10; sec = sec+1{
 		nsb.tickButtons[sec] = make([]widget.Clickable, 20)
+		nsb.tickLists[sec] = layout.List{Axis : layout.Vertical}
 	}
 
 	return *nsb
@@ -88,7 +92,7 @@ func (s10s *segment10Seconds) draw10Buttons(buttonContext layout.Context) layout
 	selectButtonVisual := material.Button(select10SecTheme, &s10s.select10Sec, fmt.Sprintf("Select: From %d to %d" , s10s.beginLoc, s10s.endLoc )  )
 	playButtonVisual := material.Button(play10SecTheme, &s10s.play10Sec, "Play" )
 
-	return layout.Flex{}.Layout(buttonContext, layout.Flexed(2, selectButtonVisual.Layout), layout.Flexed(1, playButtonVisual.Layout ))
+	return layout.Flex{}.Layout(buttonContext, layout.Flexed(1, playButtonVisual.Layout ), layout.Flexed(2, selectButtonVisual.Layout))
 }
 
 func (s10s *segment10Seconds) handle10Clicks(clickTracker layout.Context, selected10SecSeg *segment10Seconds)  *segment10Seconds{
@@ -105,24 +109,24 @@ func (s10s *segment10Seconds) handle10Clicks(clickTracker layout.Context, select
 
 
 func (s10s *segment10Seconds)  drawTickButtons(buttonContext layout.Context) layout.Dimensions{
-	return material.Label(labelTheme, 14, "Hellor").Layout(buttonContext)
-	/*return layout.List{}.Layout(buttonContext, 10, 
+	initialSec := s10s.beginLoc/(20 * getSamplesInTick())
+	return s10s.secondsList.Layout(buttonContext, 10, 
 		func(gtx layout.Context, secIndex int)layout.Dimensions{
-			layout.List{}.Layout(buttonContext, 20,
-				func(gtx layout.Context, tickIndex int)layout.Dimensions{
-					return material.Button(playTickTheme, &s10s.tickButtons[secIndex][tickIndex], fmt.Sprintf("Second %d, tick %d", secIndex, tickIndex) )
-				}
+			return s10s.tickLists[secIndex].Layout(gtx, 20,
+				func(gtx2 layout.Context, tickIndex int)layout.Dimensions{
+					return material.Button(playTickTheme, &s10s.tickButtons[secIndex][tickIndex], fmt.Sprintf("Second %d, tick %d", initialSec+secIndex, tickIndex) ).Layout(gtx2)
+				},
 			)
-		} 
-	)*/
+		},
+	)
 }
 
 func (s10s *segment10Seconds)  handleClickTicks(clickTracker layout.Context){
 	for sec := 0; sec < 10; sec = sec+1 {
 		for tick :=0; tick < 20; tick = tick + 1{
 			if s10s.tickButtons[sec][tick].Clicked(clickTracker){
-				tickStreamer := singletonAudioBuffer.Streamer(s10s.beginLoc, s10s.endLoc);
-				fmt.Println("Not finished: Still plays the entire ten seconds")
+				tickStart := s10s.beginLoc + getSamplesInSeconds(sec) + (tick*getSamplesInTick())
+				tickStreamer := singletonAudioBuffer.Streamer(tickStart, tickStart + getSamplesInTick());
 				speaker.Play(tickStreamer);
 			}
 		} 
@@ -146,9 +150,9 @@ func main(){
 	buttons10SecondSubsects := make([]segment10Seconds,0)
 	
 	var selected10SecSeg *segment10Seconds
-	for i:= 0 ; i  < singletonAudioBuffer.Len(); i += getSamplesIn10Seconds(){
+	for i:= 0 ; i  < singletonAudioBuffer.Len(); i += getSamplesInSeconds(10){
 		// Sync Waitgroup? Unescissary!
-		endLoc := i + getSamplesIn10Seconds()
+		endLoc := i + getSamplesInSeconds(10)
 		nss := newSegment10Seconds( i , endLoc)
 		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
 	}
@@ -171,13 +175,14 @@ func main(){
 				flexContext := app.NewContext( ops, typ)
 				for i, _ := range(buttons10SecondSubsects){
 					selected10SecSeg = buttons10SecondSubsects[i].handle10Clicks(flexContext, selected10SecSeg)
+					selected10SecSeg.handleClickTicks(flexContext)
 				}
 
 				labelTop := layout.Flex{Axis : layout.Vertical}
 				buttonSegregator := func(gtx layout.Context) layout.Dimensions{
-					return layout.Flex{}.Layout(gtx,  
-						layout.Flexed(1, listed10SecButtons), 
-						layout.Flexed(3, selected10SecSeg.drawTickButtons)) 
+					return layout.Flex{}.Layout(gtx,
+						layout.Flexed(1, listed10SecButtons),
+						layout.Flexed(3, selected10SecSeg.drawTickButtons))
 				}
 				//clickTracker := layout.Context{Ops : ops}
 				//var flexPosting layout.Flex
