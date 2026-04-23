@@ -5,7 +5,6 @@ import(
 	"os"
 	"log"
 	"path/filepath"
-	"time"
 	
 	"github.com/sqweek/dialog"
 	"NoteblockRobot/Util"
@@ -28,6 +27,7 @@ var (
 	play10SecTheme *material.Theme
 	playTickTheme *material.Theme
 
+	singletonSongReference utilitiesBeep.SongReference
 	singletonAudioBuffer *beep.Buffer
 	singletonAudioFormat *beep.Format
 )
@@ -52,20 +52,8 @@ func init() {
 
 }
 
-func getSamplesInTick() int{
-	if singletonAudioFormat == nil{
-		log.Fatal("Cannot Calculate Sample Without a format")
-	}
-
-	return singletonAudioFormat.SampleRate.N(time.Millisecond*time.Duration(50));
-}
-func getSamplesInSeconds(seconds int) int{
-	return 20 * seconds * getSamplesInTick()
-}
-
 type segment10Seconds struct{
-	beginLoc int
-	endLoc int
+	subSec utilitiesBeep.SongSegment 
 	select10Sec widget.Clickable
 	play10Sec widget.Clickable
 
@@ -76,8 +64,10 @@ type segment10Seconds struct{
 
 func newSegment10Seconds(beginLoc int, endLoc int) segment10Seconds{
 	nsb := new(segment10Seconds);
-	nsb.beginLoc = beginLoc
-	nsb.endLoc = endLoc
+	nsb.subSec.BeginLoc = beginLoc
+	nsb.subSec.EndLoc = endLoc
+	nsb.subSec.RefersToSong = &singletonSongReference
+
 	nsb.tickButtons = make([][]widget.Clickable, 10)
 	nsb.tickLists = make([]layout.List, 10)
 	for sec:=0; sec < 10; sec = sec+1{
@@ -89,7 +79,7 @@ func newSegment10Seconds(beginLoc int, endLoc int) segment10Seconds{
 }
 
 func (s10s *segment10Seconds) draw10Buttons(buttonContext layout.Context) layout.Dimensions{
-	selectButtonVisual := material.Button(select10SecTheme, &s10s.select10Sec, fmt.Sprintf("Select: From %d to %d" , s10s.beginLoc, s10s.endLoc )  )
+	selectButtonVisual := material.Button(select10SecTheme, &s10s.select10Sec, fmt.Sprintf("Select: From %d to %d" , s10s.subSec.BeginLoc, s10s.subSec.EndLoc )  )
 	playButtonVisual := material.Button(play10SecTheme, &s10s.play10Sec, "Play" )
 
 	return layout.Flex{}.Layout(buttonContext, layout.Flexed(1, playButtonVisual.Layout ), layout.Flexed(2, selectButtonVisual.Layout))
@@ -97,7 +87,7 @@ func (s10s *segment10Seconds) draw10Buttons(buttonContext layout.Context) layout
 
 func (s10s *segment10Seconds) handle10Clicks(clickTracker layout.Context, selected10SecSeg *segment10Seconds)  *segment10Seconds{
 	if s10s.play10Sec.Clicked(clickTracker){
-		streamerPlayable := singletonAudioBuffer.Streamer(s10s.beginLoc, s10s.endLoc);
+		streamerPlayable := singletonAudioBuffer.Streamer(s10s.subSec.BeginLoc, s10s.subSec.EndLoc);
 		speaker.Play(streamerPlayable);
 	}
 
@@ -109,7 +99,7 @@ func (s10s *segment10Seconds) handle10Clicks(clickTracker layout.Context, select
 
 
 func (s10s *segment10Seconds)  drawTickButtons(buttonContext layout.Context) layout.Dimensions{
-	initialSec := s10s.beginLoc/(20 * getSamplesInTick())
+	initialSec := s10s.subSec.BeginLoc/(20 * s10s.subSec.GetSamplesInSeconds(0.05))
 	return s10s.secondsList.Layout(buttonContext, 10, 
 		func(gtx layout.Context, secIndex int)layout.Dimensions{
 			return s10s.tickLists[secIndex].Layout(gtx, 20,
@@ -125,8 +115,8 @@ func (s10s *segment10Seconds)  handleClickTicks(clickTracker layout.Context){
 	for sec := 0; sec < 10; sec = sec+1 {
 		for tick :=0; tick < 20; tick = tick + 1{
 			if s10s.tickButtons[sec][tick].Clicked(clickTracker){
-				tickStart := s10s.beginLoc + getSamplesInSeconds(sec) + (tick*getSamplesInTick())
-				tickStreamer := singletonAudioBuffer.Streamer(tickStart, tickStart + getSamplesInTick());
+				tickStart := s10s.subSec.BeginLoc + s10s.subSec.GetSamplesInSeconds(float32(sec)) + (tick*s10s.subSec.GetSamplesInSeconds(0.05))
+				tickStreamer := singletonAudioBuffer.Streamer(tickStart, tickStart + s10s.subSec.GetSamplesInSeconds(0.05));
 				speaker.Play(tickStreamer);
 			}
 		} 
@@ -141,19 +131,16 @@ func main(){
 		log.Fatal(err)
 	}
 
-	var format beep.Format
-	singletonAudioBuffer, format = utilitiesBeep.LoadAudioFileOgg(filename)
-	singletonAudioFormat = &format
-
-	speaker.Init(singletonAudioFormat.SampleRate, singletonAudioFormat.SampleRate.N(time.Second/10))
+	singletonSongReference = utilitiesBeep.LoadAudioFileOgg(filename) 
+	singletonAudioBuffer = singletonSongReference.SongBuffer
 
 	buttons10SecondSubsects := make([]segment10Seconds,0)
 	
 	var selected10SecSeg *segment10Seconds
-	for i:= 0 ; i  < singletonAudioBuffer.Len(); i += getSamplesInSeconds(10){
+	for i:= 0 ; i  < singletonAudioBuffer.Len(); i += singletonSongReference.GetSamplesInSeconds(10){
 		// Sync Waitgroup? Unescissary!
-		endLoc := i + getSamplesInSeconds(10)
-		nss := newSegment10Seconds( i , endLoc)
+		EndLoc := i + singletonSongReference.GetSamplesInSeconds(10)
+		nss := newSegment10Seconds( i , EndLoc)
 		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
 	}
 	selected10SecSeg = &buttons10SecondSubsects[0]
@@ -188,7 +175,7 @@ func main(){
 				//var flexPosting layout.Flex
 
 								
-				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, absFilepath).Layout), layout.Flexed(1, buttonSegregator),
+				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, filename).Layout), layout.Flexed(1, buttonSegregator),
 				)
 
 				typ.Frame(ops)

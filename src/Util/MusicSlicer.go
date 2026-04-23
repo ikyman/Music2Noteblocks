@@ -3,12 +3,10 @@ package utilitiesBeep
 
 import(
 	"fmt"
-	"log"
 	"os"
+
 	"time"
 	"github.com/gopxl/beep/v2"
-	"github.com/gopxl/beep/v2/vorbis"
-	"github.com/gopxl/beep/v2/speaker"
 
 	"path/filepath"
 )
@@ -25,24 +23,6 @@ func BufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc
 	return subsectionBuffer.Streamer(subsecStart, subsecEnd);
 }
 
-// Note to self: Go find the codingGuru best practice for this sort of thing. Command? Visitor?
-func LoadAudioFileOgg(oggFile string ) (*beep.Buffer, beep.Format) {
-	f, err := os.Open(oggFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	streamSeekClo, format, err := vorbis.Decode(f)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer streamSeekClo.Close()
-
-	newBuffer := beep.NewBuffer(format);
-	newBuffer.Append(streamSeekClo);
-	
-	return newBuffer, format;
-}
-
 func main() {
 	dir, _ := os.Getwd()
 	fmt.Println("Working dir:", dir)
@@ -53,7 +33,7 @@ func main() {
 	oggAbsPath, _ := filepath.Abs("./TrainingTesting/trainingOggs/shop1DeltaRune.ogg") 
 	fmt.Println(oggAbsPath)
 
-	b, f := LoadAudioFileOgg(oggAbsPath)
+	/*b, f := LoadAudioFileOgg(oggAbsPath)
 
 	littleSection := BufferSubsection ( *b, f, 10, 20);
 
@@ -61,5 +41,5 @@ func main() {
 
 	speaker.Play(littleSection)
 
-	select {}
+	select {}*/
 }
