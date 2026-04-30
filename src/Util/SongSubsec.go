@@ -39,11 +39,11 @@ type SongSegment struct{
 	BeginLoc int
 	EndLoc int
 
-	RefersToSong *SongReference
+	refersToSong *SongReference
 }
 
 func (ss *SongSegment) GetSamplesInSeconds( seconds float32) int{
-	return ss.RefersToSong.GetSamplesInSeconds(seconds)
+	return ss.refersToSong.GetSamplesInSeconds(seconds)
 }
 
 func (sr *SongReference) GetSamplesInSeconds( seconds float32) int{
@@ -52,3 +52,14 @@ func (sr *SongReference) GetSamplesInSeconds( seconds float32) int{
 	}
 	return sr.songFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
 }
+
+/*func (sr *SongReference) PlaySubsection( subsection SongSegment) int{
+
+	tickStreamer := singletonAudioBuffer.Streamer(tickStart, tickStart + s10s.subSec.GetSamplesInSeconds(0.05));
+	speaker.Play(tickStreamer);
+
+	if sr.songFormat == (beep.Format{}){
+		log.Fatal("Cannot Calculate Sample Without a format")
+	}
+	return sr.songFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
+}*/

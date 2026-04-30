@@ -23,6 +23,35 @@ func BufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc
 	return subsectionBuffer.Streamer(subsecStart, subsecEnd);
 }
 
+func SliceSongIntoSegments(songRef *SongReference, segmentLengthSeconds float32) []SongSegment {
+	if songRef == nil || songRef.SongBuffer == nil || segmentLengthSeconds <= 0 {
+		return []SongSegment{}
+	}
+
+	songLengthSamples := songRef.SongBuffer.Len()
+	if songLengthSamples <= 0 {
+		return []SongSegment{}
+	}
+
+	segmentLengthSamples := songRef.GetSamplesInSeconds(segmentLengthSeconds)
+
+	segments := make([]SongSegment, 0)
+	for i := 0; i < songLengthSamples; i += segmentLengthSamples {
+		endLoc := i + segmentLengthSamples
+		if endLoc > songLengthSamples {
+			endLoc = songLengthSamples
+		}
+
+		segments = append(segments, SongSegment{
+			BeginLoc: i,
+			EndLoc: endLoc,
+			refersToSong: songRef,
+		})
+	}
+
+	return segments
+}
+
 func main() {
 	dir, _ := os.Getwd()
 	fmt.Println("Working dir:", dir)

@@ -62,11 +62,9 @@ type segment10Seconds struct{
 	tickLists []layout.List
 }
 
-func newSegment10Seconds(beginLoc int, endLoc int) segment10Seconds{
+func newSegment10Seconds(segment utilitiesBeep.SongSegment) segment10Seconds{
 	nsb := new(segment10Seconds);
-	nsb.subSec.BeginLoc = beginLoc
-	nsb.subSec.EndLoc = endLoc
-	nsb.subSec.RefersToSong = &singletonSongReference
+	nsb.subSec = segment
 
 	nsb.tickButtons = make([][]widget.Clickable, 10)
 	nsb.tickLists = make([]layout.List, 10)
@@ -137,11 +135,13 @@ func main(){
 	buttons10SecondSubsects := make([]segment10Seconds,0)
 	
 	var selected10SecSeg *segment10Seconds
-	for i:= 0 ; i  < singletonAudioBuffer.Len(); i += singletonSongReference.GetSamplesInSeconds(10){
-		// Sync Waitgroup? Unescissary!
-		EndLoc := i + singletonSongReference.GetSamplesInSeconds(10)
-		nss := newSegment10Seconds( i , EndLoc)
+	tenSecondSegments := utilitiesBeep.SliceSongIntoSegments(&singletonSongReference, 10)
+	for _, segment := range tenSecondSegments {
+		nss := newSegment10Seconds(segment)
 		buttons10SecondSubsects = append(buttons10SecondSubsects, nss);
+	}
+	if len(buttons10SecondSubsects) == 0 {
+		log.Fatal("No 10-second segments were created for this audio file")
 	}
 	selected10SecSeg = &buttons10SecondSubsects[0]
 
@@ -171,10 +171,7 @@ func main(){
 						layout.Flexed(1, listed10SecButtons),
 						layout.Flexed(3, selected10SecSeg.drawTickButtons))
 				}
-				//clickTracker := layout.Context{Ops : ops}
-				//var flexPosting layout.Flex
-
-								
+			
 				labelTop.Layout(flexContext, layout.Rigid( material.Label(labelTheme, 14, filename).Layout), layout.Flexed(1, buttonSegregator),
 				)
 
