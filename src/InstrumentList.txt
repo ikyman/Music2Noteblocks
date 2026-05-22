@@ -1,3 +1,4 @@
+Harp: dirt
 Bass: wood
 Snare: Gravel
 Click,Sticks: Glass
