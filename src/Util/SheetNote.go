@@ -9,20 +9,29 @@ import (
 )
 
 type SheetNote struct {
-	// instrument -> duration -> pitch
-	NotesByInstrument map[string]map[int]int
+	// index = time step; each entry is instrument -> pitch at that step
+	NotesByTime []map[string]int
 
 	CoveredLength int
 }
 
 func emptySheetNote() SheetNote {
 	return SheetNote{
-		NotesByInstrument: make(map[string]map[int]int),
+		NotesByTime: make([]map[string]int, 0),
+	}
+}
+
+func ensureTimeSlot(sheet *SheetNote, timestamp int) {
+	for len(sheet.NotesByTime) <= timestamp {
+		sheet.NotesByTime = append(sheet.NotesByTime, nil)
+	}
+	if sheet.NotesByTime[timestamp] == nil {
+		sheet.NotesByTime[timestamp] = make(map[string]int)
 	}
 }
 
 // AI Generated. As the csv.Newreader returns a [][]string, this should work...
-// I was a bit sloshed when reviewing the below. That I feel WIN! is natural. 
+// I was a bit sloshed when reviewing the below. That I feel WIN! is natural.
 func LoadSheetNoteFromCSV(csvPath string) (SheetNote, error) {
 	file, err := os.Open(csvPath)
 	if err != nil {
@@ -86,12 +95,10 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, error) {
 				)
 			}
 
-			if sheetNote.NotesByInstrument[instrument] == nil {
-				sheetNote.NotesByInstrument[instrument] = make(map[int]int)
-			}
-			sheetNote.NotesByInstrument[instrument][timestamp] = pitch
+			ensureTimeSlot(&sheetNote, timestamp)
+			sheetNote.NotesByTime[timestamp][instrument] = pitch
 		}
-		maxTime = max(maxTime, timestamp);
+		maxTime = max(maxTime, timestamp)
 	}
 	sheetNote.CoveredLength = maxTime
 
