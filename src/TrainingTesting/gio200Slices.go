@@ -121,7 +121,6 @@ func (s10s *segment10Seconds)  handleClickTicks(clickTracker layout.Context){
 	}
 }
 
-
 func main(){
 	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
 	filename, err := dialog.File().SetStartDir(absFilepath).Load()

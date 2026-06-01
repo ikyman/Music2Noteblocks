@@ -1,10 +1,11 @@
 
 package main
 
-/*import(
+import(
 	"fmt"
-)*/
+	_"NoteblockRobot/Util"
+)
 
-/*func main (){
+func main_for_future(){
 	fmt.Println("Hello World! (Go is oddly hard to get set up)");
-}*/
+}
