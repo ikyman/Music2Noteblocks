@@ -12,7 +12,7 @@ import(
 
 type SongReference struct{
 	SongBuffer *beep.Buffer
-	songFormat beep.Format
+	SongFormat beep.Format
 }
 
 // Note to self: Go find the codingGuru best practice for this sort of thing. Command? Visitor?
@@ -47,10 +47,10 @@ func (ss *SongSegment) GetSamplesInSeconds( seconds float32) int{
 }
 
 func (sr *SongReference) GetSamplesInSeconds( seconds float32) int{
-	if sr.songFormat == (beep.Format{}){
+	if sr.SongFormat == (beep.Format{}){
 		log.Fatal("Cannot Calculate Sample Without a format")
 	}
-	return sr.songFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
+	return sr.SongFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
 }
 
 /*func (sr *SongReference) PlaySubsection( subsection SongSegment) int{

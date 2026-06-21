@@ -11,7 +11,7 @@ var (
 )
 
 func init() {
-	DEFAULT_ORCHESTRA_BPS = 10;
+	DEFAULT_ORCHESTRA_BPS = 20;
 }
 
 type Orchestra struct {
