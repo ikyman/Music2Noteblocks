@@ -7,6 +7,7 @@ import(
 	"log"
 
 	"NoteblockRobot/Util"
+	"NoteblockRobot/Util/SheetMusicPlayer"
 )
 
 type MusicPage struct {
@@ -54,4 +55,9 @@ func main(){
 			SheetNotesCSV: sheetNotesCSV,
 		})
 	}
+
+	orchest := sheetMusicPlayer.EmptyOrchestra();
+	orchest.AddInstrument(sheetMusicPlayer.NewInstrument("harp")) 
+
+	orchest.PlayMusic(musicPages[0].SheetNotesCSV);
 }

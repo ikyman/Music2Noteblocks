@@ -1,39 +1,55 @@
-package utilitiesBeep
+package sheetMusicPlayer
 
 import (
-	"github.com/gopxl/beep/v2/speaker"
+	"time"
+
+	"NoteblockRobot/Util"
 )
+
+var (
+	DEFAULT_ORCHESTRA_BPS float32;
+)
+
+func init() {
+	DEFAULT_ORCHESTRA_BPS = 10;
+}
 
 type Orchestra struct {
 	orchestraInstruments map[string]Instrument
+
+	beatsPerSecond float32;
 }
 
-func emptyOrchestra() Orchestra {
+func EmptyOrchestra() Orchestra {
 	return Orchestra{
 		orchestraInstruments: make(map[string]Instrument),
+		beatsPerSecond: DEFAULT_ORCHESTRA_BPS,
 	}
 }
 
-func (orch *Orchestra) addInstrument(newInstrument Instrument) {
+func (orch *Orchestra) AddInstrument(newInstrument Instrument) {
 	orch.orchestraInstruments[newInstrument.instrumentName] = newInstrument
 }
 
-func (orch *Orchestra) playMusic(musicToPlay SheetNote) {
+func (orch *Orchestra) PlayMusic(musicToPlay utilitiesBeep.SheetNote) {
 	for _, notesAtTime := range musicToPlay.NotesByTime {
+		time.Sleep(time.Duration(1000/orch.beatsPerSecond)*time.Millisecond)
 		if notesAtTime == nil {
 			continue
 		}
 		for instrumentName, pitch := range notesAtTime {
 			instrument, ok := orch.orchestraInstruments[instrumentName]
+
 			if !ok {
 				continue
 			}
-			instrument.PlayNote(pitch)
+			go instrument.playNote(pitch)
 		}
+		
 	}
 }
 
-func (orch *Orchestra) missingInstruments(musicToPlay SheetNote) []string {
+func (orch *Orchestra) MissingInstruments(musicToPlay utilitiesBeep.SheetNote) []string {
 	mentioned := make(map[string]struct{})
 	for _, notesAtTime := range musicToPlay.NotesByTime {
 		if notesAtTime == nil {
@@ -53,20 +69,3 @@ func (orch *Orchestra) missingInstruments(musicToPlay SheetNote) []string {
 	return missing
 }
 
-type Instrument struct {
-	midBeat        SongReference
-	instrumentName string
-}
-
-func newInstrument(instrumentName string) Instrument {
-	return Instrument{
-		instrumentName: instrumentName,
-		midBeat:        LoadAudioFileOgg("./InstrumentBeats" + instrumentName + ".ogg"),
-	}
-}
-
-func (inst *Instrument) PlayNote(pitch int) {
-	_ = pitch // pitch resampling to be added later
-	streamer := inst.midBeat.SongBuffer.Streamer(0, inst.midBeat.SongBuffer.Len())
-	speaker.Play(streamer)
-}

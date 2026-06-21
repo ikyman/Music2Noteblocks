@@ -8,6 +8,28 @@ import (
 	"strings"
 )
 
+var (
+	instrumentAliases map[string]string
+)
+
+func init() {
+	instrumentAliases = map[string]string{
+		"stone": "bd",
+	}
+}
+
+func InstrumentNameFor(unaliasedName string) string{
+	lowercaseUnaliased := strings.ToLower(unaliasedName)
+
+	aliasedName := instrumentAliases[lowercaseUnaliased];
+	
+	if (aliasedName != ""){
+		return aliasedName
+	}
+	return lowercaseUnaliased
+}
+
+
 type SheetNote struct {
 	// index = time step; each entry is instrument -> pitch at that step
 	NotesByTime []map[string]int
@@ -52,6 +74,9 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, error) {
 
 	sheetNote := emptySheetNote()
 	instruments := rows[0]
+	for instIndex := 0; instIndex < len(instruments); instIndex++{
+		instruments[instIndex] = InstrumentNameFor(instruments[instIndex])
+	}
 	maxTime := 0
 
 	for rowIndex := 1; rowIndex < len(rows); rowIndex++ {
