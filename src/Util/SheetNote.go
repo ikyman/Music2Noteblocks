@@ -43,6 +43,7 @@ func emptySheetNote() SheetNote {
 	}
 }
 
+// This must be AI generated, for I don't have the foggiest clue what the first half means.
 func ensureTimeSlot(sheet *SheetNote, timestamp int) {
 	for len(sheet.NotesByTime) <= timestamp {
 		sheet.NotesByTime = append(sheet.NotesByTime, nil)

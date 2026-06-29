@@ -8,13 +8,9 @@ import(
 
 	"NoteblockRobot/Util"
 	"NoteblockRobot/Util/SheetMusicPlayer"
+	"NoteblockRobot/MachineLearning"
 )
 
-type MusicPage struct {
-	// Warning! No methodology for checking that the Segment size is the same as the SheetNotes Size
-	Segment utilitiesBeep.SongSegment
-	SheetNotesCSV utilitiesBeep.SheetNote 
-}
 
 // Application themes - initialized once, accessible throughout the package
 var (
@@ -26,26 +22,24 @@ func init() {
 	musicSliceSecondLength = 10;
 }
 
+type MusicPage struct {
+	Segment utilitiesBeep.SongSegment
+	SheetNotesCSV utilitiesBeep.SheetNote 
+}
+
 // How It works: Ticks are the fundamental timespeed of minecraft. Thus, our representations shall just be "What note gets played in each 1/20th second interval"
+func LoadTrainingOGGFolder(trainingFolderFilePath string ) []MusicPage{
+	// Warning! No methodology for checking that the Segment size is the same as the SheetNotes Size
+	musicPages := make([]MusicPage, 0);
 
-func main(){
-	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
-
-	//selectedFolder := pickSongFolder(absFilepath)
-	selectedFolder, err := dialog.Directory().SetStartDir(absFilepath).Browse()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	oggFilename := filepath.Join(selectedFolder, filepath.Base(selectedFolder)+".ogg")
+	oggFilename := filepath.Join(trainingFolderFilePath, filepath.Base(trainingFolderFilePath)+".ogg")
 
 	loadedSongReference := utilitiesBeep.LoadAudioFileOgg(oggFilename)
 
 	musicAudioSegments := utilitiesBeep.SliceSongIntoSegments(&loadedSongReference, float32(musicSliceSecondLength));
-	musicPages := make([]MusicPage, 0);
 
 	for i, _ := range musicAudioSegments {
-		csvPath := filepath.Join(selectedFolder, fmt.Sprintf("%dTo%d.csv", i*musicSliceSecondLength, (i+1)*musicSliceSecondLength))
+		csvPath := filepath.Join(trainingFolderFilePath, fmt.Sprintf("%dTo%d.csv", i*musicSliceSecondLength, (i+1)*musicSliceSecondLength))
 		sheetNotesCSV, err := utilitiesBeep.LoadSheetNoteFromCSV(csvPath)
 		if err != nil {
 			log.Fatal(err)
@@ -56,8 +50,25 @@ func main(){
 		})
 	}
 
+	return musicPages
+}
+
+func main(){
+	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
+
+	selectedFolder, err := dialog.Directory().SetStartDir(absFilepath).Browse()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	musicPages := LoadTrainingOGGFolder(selectedFolder);
+
 	orchest := sheetMusicPlayer.EmptyOrchestra();
 	orchest.AddInstrument(sheetMusicPlayer.NewInstrument("harp")) 
 
-	orchest.PlayMusic(musicPages[0].SheetNotesCSV);
+	//orchest.PlayMusic(musicPages[0].SheetNotesCSV);
+
+	fmt.Println(mCraftnBlockmLearning.SheetNote2Matrix(musicPages[0].SheetNotesCSV))
+
+	
 }

@@ -12,7 +12,7 @@ import(
 )
 
 
-func BufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc float32 ) (beep.Streamer){
+func bufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc float32 ) (beep.Streamer){
 	subsectionBuffer := beep.NewBuffer(f);
 	fullStream := buff.Streamer(0, buff.Len())
 	subsectionBuffer.Append(fullStream);

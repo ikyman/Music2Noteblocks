@@ -35,6 +35,13 @@ func LoadAudioFileOgg(oggFile string ) SongReference {
 	return SongReference{newBuffer, format};
 }
 
+func (sr *SongReference) GetSamplesInSeconds( seconds float32) int{
+	if sr.SongFormat == (beep.Format{}){
+		log.Fatal("Cannot Calculate Sample Without a format")
+	}
+	return sr.SongFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
+}
+
 type SongSegment struct{
 	BeginLoc int
 	EndLoc int
@@ -46,20 +53,9 @@ func (ss *SongSegment) GetSamplesInSeconds( seconds float32) int{
 	return ss.refersToSong.GetSamplesInSeconds(seconds)
 }
 
-func (sr *SongReference) GetSamplesInSeconds( seconds float32) int{
-	if sr.SongFormat == (beep.Format{}){
-		log.Fatal("Cannot Calculate Sample Without a format")
-	}
-	return sr.SongFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
+func (ss *SongSegment) AsBuffer() *beep.Buffer{
+	ret_buff := beep.NewBuffer(ss.refersToSong.SongFormat)
+	ret_buff.Append(ss.refersToSong.SongBuffer.Streamer(ss.BeginLoc, ss.EndLoc))
+
+	return ret_buff
 }
-
-/*func (sr *SongReference) PlaySubsection( subsection SongSegment) int{
-
-	tickStreamer := singletonAudioBuffer.Streamer(tickStart, tickStart + s10s.subSec.GetSamplesInSeconds(0.05));
-	speaker.Play(tickStreamer);
-
-	if sr.songFormat == (beep.Format{}){
-		log.Fatal("Cannot Calculate Sample Without a format")
-	}
-	return sr.songFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
-}*/
