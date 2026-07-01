@@ -1,58 +1,57 @@
 package mCraftnBlockmLearning
 
 import (
+	"fmt"
 	_"github.com/gopxl/beep/v2"
 	"gonum.org/v1/gonum/mat"
 
 	"NoteblockRobot/Util"
 )
 
-const sheetNoteInstrumentCount = 24
+const (
+	ASSUMED_MAX_INSTRUMENTS int = 24
+)
 
-// instrumentColumns maps column index -> canonical instrument name (harp -> 0).
-// Columns 16–23 are reserved until the remaining instrument slots are confirmed.
-var instrumentColumns = [sheetNoteInstrumentCount]string{
-	"harp",
-	"bass",
-	"bd",
-	"snare",
-	"hat",
-	"bell",
-	"flute",
-	"chime",
-	"guitar",
-	"xylophone",
-	"iron_xylophone",
-	"cow_bell",
-	"didgeridoo",
-	"bit",
-	"banjo",
-	"pling",
-	"", "", "", "", "", "", "", "",
-}
+var(
+	INSTUMENT_COLUMNS [ASSUMED_MAX_INSTRUMENTS]string;
+)
 
-var instrumentNameToIndex map[string]int
-
-func init() {
-	instrumentNameToIndex = make(map[string]int, sheetNoteInstrumentCount+8)
-	for i, name := range instrumentColumns {
-		if name == "" {
-			continue
-		}
-		instrumentNameToIndex[name] = i
+func init(){
+	INSTUMENT_COLUMNS = [ASSUMED_MAX_INSTRUMENTS]string{
+		"harp",
+		"bass",
+		"snare",
+		"hat",
+		"basedrum",
+		"bell",
+		"flute",
+		"chime",
+		"guitar",
+		"xylophone",
+		"iron_xylophone",
+		"cow_bell",
+		"didgeridoo",
+		"bit",
+		"banjo",
+		"pling",
+		"trumpet",
+		"trumpet_exposed",
+		"trumpet_weathered",
+		"trumpet_oxidized",
 	}
-
-	// Common aliases and alternate spellings seen in sheet CSV headers.
-	instrumentNameToIndex["basedrum"] = instrumentNameToIndex["bd"]
-	instrumentNameToIndex["stone"] = instrumentNameToIndex["bd"]
-	instrumentNameToIndex["sticks"] = instrumentNameToIndex["hat"]
-	instrumentNameToIndex["hihat"] = instrumentNameToIndex["hat"]
 }
+
+
 
 func instrumentColumnIndex(instrumentName string) (int, bool) {
-	canonical := utilitiesBeep.InstrumentNameFor(instrumentName)
-	idx, ok := instrumentNameToIndex[canonical]
-	return idx, ok
+	canonicalName := utilitiesBeep.InstrumentNameFor(instrumentName)
+	idx := 0
+	for ; idx < len(INSTUMENT_COLUMNS); idx++{
+		if canonicalName == INSTUMENT_COLUMNS[idx]{
+			return idx, true
+		}
+	}
+	return -1, false
 }
 // Half Written by the AI, who didn't understand me.
 // The other half was written by me, who didn't understand the AI.
@@ -83,7 +82,7 @@ func SongSegment2Matrix(songSeg utilitiesBeep.SongSegment) mat.Matrix {
 
 func SheetNote2Matrix(sheetNote utilitiesBeep.SheetNote) mat.Matrix {
 	length := len(sheetNote.NotesByTime)
-	retMatrix := mat.NewDense(length, sheetNoteInstrumentCount, nil)
+	retMatrix := mat.NewDense(length, ASSUMED_MAX_INSTRUMENTS, nil)
 
 	for timeStep, notesAtTime := range sheetNote.NotesByTime {
 		if notesAtTime == nil {
@@ -92,7 +91,7 @@ func SheetNote2Matrix(sheetNote utilitiesBeep.SheetNote) mat.Matrix {
 		for instrumentName, pitch := range notesAtTime {
 			col, ok := instrumentColumnIndex(instrumentName)
 			if !ok {
-				// TODO: unknown instrument — define column mapping or extend instrumentColumns.
+				// unknown instrument
 				continue
 			}
 			retMatrix.Set(timeStep, col, float64(pitch))
