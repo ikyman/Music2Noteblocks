@@ -1,7 +1,7 @@
 package mCraftnBlockmLearning
 
 import (
-	"fmt"
+	_"fmt"
 	_"github.com/gopxl/beep/v2"
 	"gonum.org/v1/gonum/mat"
 

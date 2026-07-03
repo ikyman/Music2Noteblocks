@@ -3,9 +3,21 @@ package main
 
 import(
 	"fmt"
-	_"NoteblockRobot/Util"
+	"path/filepath"
+	"os"
+	"NoteblockRobot/Util"
+	_"NoteblockRobot/MachineLearning"
+
 )
 
-func main_for_future(){
-	fmt.Println("Hello World! (Go is oddly hard to get set up)");
+func main(){
+	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
+
+	dirEntries, _ := os.ReadDir(absFilepath)
+
+	for _, dirEntry := range dirEntries{
+		if (dirEntry.IsDir()){
+			utilitiesBeep.LoadTrainingOGGFolder(absFilepath + "/" + dirEntry.Name())
+		}
+	}
 }

@@ -62,13 +62,4 @@ func main() {
 	oggAbsPath, _ := filepath.Abs("./TrainingTesting/trainingOggs/shop1DeltaRune.ogg") 
 	fmt.Println(oggAbsPath)
 
-	/*b, f := LoadAudioFileOgg(oggAbsPath)
-
-	littleSection := BufferSubsection ( *b, f, 10, 20);
-
-	speaker.Init(f.SampleRate, f.SampleRate.N(time.Second/10))
-
-	speaker.Play(littleSection)
-
-	select {}*/
 }

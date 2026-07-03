@@ -27,7 +27,7 @@ type NeuralNet struct{
 
 	nnLayers []NNLayer;
 
-	int outputDimR, outputDimC;
+	outputDimR, outputDimC int;
 
 	lossFuction func(output mat.Matrix, target mat.Matrix) float64;
 }
@@ -36,43 +36,53 @@ func NewNeuralNet() NeuralNet{
 	nnn := new(NeuralNet);
 	nnn.trainingInput = make([]mat.Matrix, 0)
 	nnn.trainingOutput = make([]mat.Matrix, 0)
-	nnLayers = make([]NNLayer, 0)
+	nnn.nnLayers = make([]NNLayer, 0)
 
-	outputDimR = -1;
-	outputDimC = -1;
+	nnn.outputDimR = -1;
+	nnn.outputDimC = -1;
 	
 	return *nnn
 }
 
-func AddTrainingData(nnn *NeuralNet, input []mat.Matrix, output []mat.Matrix){
+func AddTrainingData(nn *NeuralNet, input []mat.Matrix, output []mat.Matrix){
 	if len(input) != len(output){
 		panic("input and output must have the same length")
 	}
 
 	for i := 0; i < len(input); i++ {
-		nnn.trainingInput = append(nnn.trainingInput, input[i])
-		nnn.trainingOutput = append(nnn.trainingOutput, output[i])
+		nn.trainingInput = append(nn.trainingInput, input[i])
+		nn.trainingOutput = append(nn.trainingOutput, output[i])
 	}
-	for i := 0; i < len(nnn.trainingInput); ++i{
-		if (nnn.trainingInput[i] != nnn.trainingInput[i-1]){
+	for i := 0; i < len(nn.trainingInput); i++{
+		if (nn.trainingInput[i] != nn.trainingInput[i-1]){
 			panic("All input matrixies must have same length!")
 		}
-		if (nnn.trainingOutput[i] != nnn.trainingOutput[i-1]){
+		if (nn.trainingOutput[i] != nn.trainingOutput[i-1]){
 			panic("All output matrixies must have same length!")
 		}
 	}
-	if (outputDimR == -1 || outputDimC == -1) && len(nnn.trainingInput) > 0{
-		(outputDimR, outputDimC) = nnn.trainingInput[0].Dims();
+	if (nn.outputDimR == -1 || nn.outputDimC == -1) && len(nn.trainingInput) > 0{
+		nn.outputDimR, nn.outputDimC = nn.trainingInput[0].Dims();
 	}
 }
 
-func addLayer(nnn *NeuralNet, newLayer NNLayer){
-	(newOutputDimR, newOutputDimC) = (newOutputDimR, NNLayer.weights.Dims()[1])
+func addLayer(nn *NeuralNet, newLayer NNLayer){
+	weightMatR, weightMatC := newLayer.weights.Dims()
+	biasMatR, biasMatC := newLayer.weights.Dims()
 
-	if NNLayer.biases.Dims() != (newOutputDimR, newOutputDimC) {
+	if (nn.outputDimC != weightMatR){
+		fmt.Println("Cannot Multiply new layer with previous output")
+		fmt.Printf("Previous output matrix had %d columns", nn.outputDimC)
+		fmt.Printf("While new layer matrix has %d rows", weightMatR)
+		return
+	}
+
+	newOutputDimR, newOutputDimC := nn.outputDimR, weightMatC
+
+	if !(biasMatR == newOutputDimR && biasMatC== newOutputDimC) {
 		fmt.Println("Biases not compatible with Output of Multiplying previous output with weight matrix")
 		fmt.Printf("Previous Output * Weight matrix has dimensions (%d Rows, %d Cols) \n", newOutputDimR, newOutputDimC)
-		fmt.Printf("Bias matrix has dimensions (%d Rows, %d Cols). Cannot be added!", NNLayer.biases.Dims()[0], NNLayer.biases.Dims() [1] )
+		fmt.Printf("Bias matrix has dimensions (%d Rows, %d Cols). Cannot be added!", biasMatR, biasMatC )
 		return
 	}
 

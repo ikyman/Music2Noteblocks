@@ -1,14 +1,9 @@
-package main
+package utilitiesBeep
 
 import(
 	"fmt"
 	"path/filepath"
-	"github.com/sqweek/dialog"
 	"log"
-
-	"NoteblockRobot/Util"
-	"NoteblockRobot/Util/SheetMusicPlayer"
-	"NoteblockRobot/MachineLearning"
 )
 
 
@@ -23,8 +18,8 @@ func init() {
 }
 
 type MusicPage struct {
-	Segment utilitiesBeep.SongSegment
-	SheetNotesCSV utilitiesBeep.SheetNote 
+	Segment SongSegment
+	SheetNotesCSV SheetNote 
 }
 
 // How It works: Ticks are the fundamental timespeed of minecraft. Thus, our representations shall just be "What note gets played in each 1/20th second interval"
@@ -34,13 +29,13 @@ func LoadTrainingOGGFolder(trainingFolderFilePath string ) []MusicPage{
 
 	oggFilename := filepath.Join(trainingFolderFilePath, filepath.Base(trainingFolderFilePath)+".ogg")
 
-	loadedSongReference := utilitiesBeep.LoadAudioFileOgg(oggFilename)
+	loadedSongReference := LoadAudioFileOgg(oggFilename)
 
-	musicAudioSegments := utilitiesBeep.SliceSongIntoSegments(&loadedSongReference, float32(musicSliceSecondLength));
+	musicAudioSegments := SliceSongIntoSegments(&loadedSongReference, float32(musicSliceSecondLength));
 
 	for i, _ := range musicAudioSegments {
 		csvPath := filepath.Join(trainingFolderFilePath, fmt.Sprintf("%dTo%d.csv", i*musicSliceSecondLength, (i+1)*musicSliceSecondLength))
-		sheetNotesCSV, err := utilitiesBeep.LoadSheetNoteFromCSV(csvPath)
+		sheetNotesCSV, err := LoadSheetNoteFromCSV(csvPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,7 +48,7 @@ func LoadTrainingOGGFolder(trainingFolderFilePath string ) []MusicPage{
 	return musicPages
 }
 
-func main(){
+/*func main(){
 	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
 
 	selectedFolder, err := dialog.Directory().SetStartDir(absFilepath).Browse()
@@ -71,4 +66,4 @@ func main(){
 	fmt.Println(mCraftnBlockmLearning.SheetNote2Matrix(musicPages[0].SheetNotesCSV))
 
 	
-}
+}*/
