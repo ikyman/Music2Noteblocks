@@ -1,5 +1,11 @@
-# Music2Noteblocks
-What, am I going to build the music machine myself? No!
+# Music2Noteblocks.
+
+This Repository is an AI-Powered Audio and Song analysis tool.
+The core of this program is a custom-built multi-layered Machine Learning model for generating Machine-readable encodings of the input song. 
+This encoding will be used to design automated implementation instructions. These instructions shall be for building a virtual orchestra of the input song complient with the second-most popular metaverse.
+
+# Music2Noteblocks: The Discryption I used when I wasn't maxing out on buzzwords in an attempt to boost my salary.
+I going to build a Minecraft music machine myself? No! Imma make a machine that makes from the music the machine that makes the minecraft music machine.
 
 # Impetus
 Some time ago I signed up for one of those famous "200 players" Minecraft civilization event. 
@@ -22,7 +28,7 @@ The problem with making note-block songs is that they're a pain in the bum.
 А. I have a good enough ear for Myst's Piano Rocket. Automatically translating a song that I'm hearing in real-time into note notation, that I cannot do. Triply so if said song has, say, 3 instruments, which will in turn require 3 types of noteblocks.
 Б. Noteblocks don't have a UI. You have to Right-click them a certain number of times to get the right pitch. Go one over? Now you have to Right-click until it resets. 
 When does it re-set? You've already mis-counted, so who knows? (Now that I've had time to think about it, I suppose I could just mine & re-place the Noteblock. This does not abrogate the other points! )
-В. It requires counting the spaces in between notes. Also in real-time. (Sheet music would mitigate some of these problems, but where would I get such a sheet music?)
+В. It requires counting the spaces in between notes. Also in real-time. ~~(Sheet music would mitigate some of these problems, but where would I get such a sheet music?)~~
 Г. Building the machine is boring. 
 
 # Solution: Mindflayer
