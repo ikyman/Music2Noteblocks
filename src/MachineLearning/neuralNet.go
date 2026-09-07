@@ -21,6 +21,7 @@ type PoolLayer struct{
 	// Has to support max pool & average pool.
 }
 
+
 type NeuralNet struct{
 	trainingInput []mat.Matrix;
 	trainingOutput []mat.Matrix;
