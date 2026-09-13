@@ -21,6 +21,14 @@ type PoolLayer struct{
 	// Has to support max pool & average pool.
 }
 
+func newFullLayer(rows int, cols int){
+	var returnNNLayer NNLayer = new(NNLayer);
+	returnNNLayer.weights = mat.NewDense(rows, cols);
+	returnNNLayer.biases = mat.NewDense(rows, cols);
+
+	return returnNNLayer;
+}
+
 
 type NeuralNet struct{
 	trainingInput []mat.Matrix;
@@ -46,10 +54,6 @@ func NewNeuralNet() NeuralNet{
 }
 
 func AddTrainingData(nn *NeuralNet, input []mat.Matrix, output []mat.Matrix){
-	if len(input) != len(output){
-		panic("input and output must have the same length")
-	}
-
 	for i := 0; i < len(input); i++ {
 		nn.trainingInput = append(nn.trainingInput, input[i])
 		nn.trainingOutput = append(nn.trainingOutput, output[i])
@@ -90,6 +94,33 @@ func addLayer(nn *NeuralNet, newLayer NNLayer){
 
 } 
 
-func PrintInfo(nnn *NeuralNet){
+func PrintInfo(nnn *NeuralNet) {
+	if len(nnn.trainingInput) > 0 {
+		r, c := nnn.trainingInput[0].Dims()
+		fmt.Printf("Input dimensions: %d rows, %d cols\n", r, c)
+	} else {
+		fmt.Println("Input dimensions: (no training input)")
+	}
 
+	fmt.Printf("Layers: %d\n", len(nnn.nnLayers))
+	for i, layer := range nnn.nnLayers {
+		wr, wc := 0, 0
+		br, bc := 0, 0
+		if layer.weights != nil {
+			wr, wc = layer.weights.Dims()
+		}
+		if layer.biases != nil {
+			br, bc = layer.biases.Dims()
+		}
+		fmt.Printf("  Layer %d: weights (%d rows, %d cols), biases (%d rows, %d cols)\n", i, wr, wc, br, bc)
+	}
+
+	if len(nnn.trainingOutput) > 0 {
+		r, c := nnn.trainingOutput[0].Dims()
+		fmt.Printf("Output dimensions: %d rows, %d cols\n", r, c)
+	} else if nnn.outputDimR >= 0 && nnn.outputDimC >= 0 {
+		fmt.Printf("Output dimensions: %d rows, %d cols\n", nnn.outputDimR, nnn.outputDimC)
+	} else {
+		fmt.Println("Output dimensions: (unset)")
+	}
 }
