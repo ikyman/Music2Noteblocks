@@ -8,16 +8,6 @@ import (
 	"strings"
 )
 
-var (
-	instrumentAliases map[string]string
-)
-
-func init() {
-	instrumentAliases = map[string]string{
-		"stone": "bd",
-	}
-}
-
 func InstrumentNameFor(unaliasedName string) string{
 	lowercaseUnaliased := strings.ToLower(unaliasedName)
 
