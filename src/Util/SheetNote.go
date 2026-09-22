@@ -6,19 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"gonum.org/v1/gonum/mat"
 )
-
-func InstrumentNameFor(unaliasedName string) string{
-	lowercaseUnaliased := strings.ToLower(unaliasedName)
-
-	aliasedName := instrumentAliases[lowercaseUnaliased];
-	
-	if (aliasedName != ""){
-		return aliasedName
-	}
-	return lowercaseUnaliased
-}
-
 
 type SheetNote struct {
 	// index = time step; each entry is instrument -> pitch at that step
@@ -26,6 +15,8 @@ type SheetNote struct {
 
 	CoveredLength int
 }
+
+type SheetNote = mat.Matrix;
 
 func emptySheetNote() SheetNote {
 	return SheetNote{
@@ -45,22 +36,28 @@ func ensureTimeSlot(sheet *SheetNote, timestamp int) {
 
 // AI Generated. As the csv.Newreader returns a [][]string, this should work...
 // I was a bit sloshed when reviewing the below. That I feel WIN! is natural.
-func LoadSheetNoteFromCSV(csvPath string) (SheetNote, error) {
+
+// At this present time, I absolutly cannot summon any effort to re-write this.
+// Wait untill I get more AI juice. Inform the AI that the SheetNote is no longer a Dictionary, but instead a matrix.
+// Very simple. We have row and column index from the CSV! A CSV is a table, after all.
+// Call the top column of the CSV for any differences between the CSV's Insturment-column key and the default.
+// Throw an error if the IndexerInstruments isn't consistant (Or translate for the second and subsequant CSVs)
+func LoadSheetNoteFromCSV(csvPath string) (SheetNote, IndexerInstruments, error) {
 	file, err := os.Open(csvPath)
 	if err != nil {
-		return SheetNote{}, fmt.Errorf("open csv %q: %w", csvPath, err)
+		return loadSheetNoteFromCSVError(fmt.Errorf("open csv %q: %w", csvPath, err))
 	}
 	defer file.Close()
 
 	rows, err := csv.NewReader(file).ReadAll()
 	if err != nil {
-		return SheetNote{}, fmt.Errorf("read csv %q: %w", csvPath, err)
+		return loadSheetNoteFromCSVError( fmt.Errorf("read csv %q: %w", csvPath, err))
 	}
 	if len(rows) == 0 {
-		return SheetNote{}, fmt.Errorf("csv %q is empty", csvPath)
+		return loadSheetNoteFromCSVError(fmt.Errorf("csv %q is empty", csvPath) )
 	}
 	if len(rows[0]) < 2 {
-		return SheetNote{}, fmt.Errorf("csv %q missing instrument header columns", csvPath)
+		return loadSheetNoteFromCSVError( fmt.Errorf("csv %q missing instrument header columns", csvPath) )
 	}
 
 	sheetNote := emptySheetNote()
@@ -119,4 +116,9 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, error) {
 	sheetNote.CoveredLength = maxTime
 
 	return sheetNote, nil
+}
+
+// Helper function for automatically creating empty SheetNote and Empty IndexerInstruments
+func loadSheetNoteFromCSVError(errorMessage error) (SheetNote, IndexerInstruments, error){
+	return mat.Dense{}, make(IndexerInstruments),	errorMessage
 }

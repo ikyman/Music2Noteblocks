@@ -29,6 +29,19 @@ func init(){
 
 	instrumentNameAliaser = map[string]string{
 		"stone": "bd",
+		"basedrum": "bd"
 
 	}
+}
+
+func InstrumentAliasFor(unaliasedName string){
+	lowercaseUnaliased := strings.ToLower(unaliasedName)
+
+	aliasedName := instrumentAliases[lowercaseUnaliased];
+	
+	if (aliasedName != ""){
+		return aliasedName
+	}
+	return lowercaseUnaliased
+
 }
