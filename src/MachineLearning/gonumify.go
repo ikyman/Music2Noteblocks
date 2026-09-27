@@ -6,29 +6,11 @@ import (
 	"gonum.org/v1/gonum/mat"
 
 	"NoteblockRobot/Util"
-)
-
-const (
-	ASSUMED_MAX_INSTRUMENTS int = 24
-)
-
-var(
-	INSTUMENT_COLUMNS [ASSUMED_MAX_INSTRUMENTS]string;
+	"NoteblockRobot/Util/SheetMusicPlayer"
 )
 
 func init(){
 	INSTUMENT_COLUMNS = [ASSUMED_MAX_INSTRUMENTS]string{
-		"harp",
-		"bass",
-		"snare",
-		"hat",
-		"basedrum",
-		"bell",
-		"flute",
-		"chime",
-		"guitar",
-		"xylophone",
-		"iron_xylophone",
 		"cow_bell",
 		"didgeridoo",
 		"bit",
@@ -44,7 +26,7 @@ func init(){
 
 
 func instrumentColumnIndex(instrumentName string) (int, bool) {
-	canonicalName := utilitiesBeep.InstrumentNameFor(instrumentName)
+	canonicalName := sheetMusicPlayer.InstrumentAliasFor(instrumentName)
 	idx := 0
 	for ; idx < len(INSTUMENT_COLUMNS); idx++{
 		if canonicalName == INSTUMENT_COLUMNS[idx]{
@@ -81,27 +63,7 @@ func SongSegment2Matrix(songSeg utilitiesBeep.SongSegment) mat.Matrix {
 }
 
 func SheetNote2Matrix(sheetNote utilitiesBeep.SheetNote) mat.Matrix {
-	length := len(sheetNote.NotesByTime)
-	retMatrix := mat.NewDense(length, ASSUMED_MAX_INSTRUMENTS, nil)
-
-	for timeStep, notesAtTime := range sheetNote.NotesByTime {
-		if notesAtTime == nil {
-			continue
-		}
-		for instrumentName, pitch := range notesAtTime {
-			col, ok := instrumentColumnIndex(instrumentName)
-			if !ok {
-				// unknown instrument
-				continue
-			}
-			retMatrix.Set(timeStep, col, float64(pitch))
-		}
-	}
-
-	return retMatrix
+	return sheetNote
 }
-/*func matrix2SheetNote(mat mat.Matrix)  utilitiesBeep.SheetNote{
-
-}*/
 
 //func Matrix2BeepBuffer()
