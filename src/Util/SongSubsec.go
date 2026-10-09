@@ -10,9 +10,17 @@ import(
 	"github.com/gopxl/beep/v2/speaker"
 )
 
+// 
 type SongReference struct{
 	SongBuffer *beep.Buffer
 	SongFormat beep.Format
+}
+
+type SongSegment struct{
+	BeginLoc int
+	EndLoc int
+
+	refersToSong *SongReference
 }
 
 // Note to self: Go find the codingGuru best practice for this sort of thing. Command? Visitor?
@@ -40,13 +48,6 @@ func (sr *SongReference) GetSamplesInSeconds( seconds float32) int{
 		log.Fatal("Cannot Calculate Sample Without a format")
 	}
 	return sr.SongFormat.SampleRate.N(time.Millisecond*time.Duration(1000 * seconds));
-}
-
-type SongSegment struct{
-	BeginLoc int
-	EndLoc int
-
-	refersToSong *SongReference
 }
 
 func (ss *SongSegment) GetSamplesInSeconds( seconds float32) int{

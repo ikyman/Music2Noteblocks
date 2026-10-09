@@ -46,8 +46,8 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, IndexerInstruments, error)
 
 	returnSheetNote := mat.NewDense(sheetNoteNumberOfTicks, ASSUMED_MAX_INSTRUMENTS, nil)
 
-	for rowIndex := 1; rowIndex < sheetNoteNumberOfTicks; rowIndex++ {
-		row := rows[rowIndex]
+	for tickRow := 1; tickRow < sheetNoteNumberOfTicks; tickRow++ {
+		row := rows[tickRow]
 		if len(row) == 0 {
 			continue
 		}
@@ -58,10 +58,10 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, IndexerInstruments, error)
 		}
 		timestamp, err := strconv.Atoi(timeText)
 		if err != nil {
-			return loadSheetNoteFromCSVError(fmt.Errorf("invalid time at row %d: %w", rowIndex+1, err))
+			return loadSheetNoteFromCSVError(fmt.Errorf("invalid time at row %d: %w", tickRow, err))
 		}
 		if timestamp < 0 {
-			return loadSheetNoteFromCSVError(fmt.Errorf("negative time at row %d", rowIndex+1))
+			return loadSheetNoteFromCSVError(fmt.Errorf("negative time at row %d", tickRow))
 		}
 
 		for colIndex := 1; colIndex < len(rows[0]); colIndex++ {
@@ -74,21 +74,23 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, IndexerInstruments, error)
 				continue
 			}
 			pitch, err := strconv.Atoi(pitchText)
+			// Obvious bug: I can use numbers outside of Minecraft's acceptable notblock range.
+			// Leaving it in because it could be funny.
 			if err != nil {
 				return loadSheetNoteFromCSVError(fmt.Errorf(
-					"invalid pitch for instrument %q at row %d col %d: %w",
-					instrument, rowIndex+1, colIndex+1, err,
+					"invalid pitch at row %d col %d: %w",
+					tickRow, colIndex, err,
 				))
 			}
-			returnSheetNote.Set(rowIndex-1, colIndex-1, pitch)
+			returnSheetNote.Set(timestamp, colIndex-1, float64(pitch))
 
 		}
 	}
 
-	return returnSheetNote, indexer, nil
+	return returnSheetNote, csvIndexerInstruments, nil
 }
 
 // Helper function for automatically creating empty SheetNote and Empty IndexerInstruments
 func loadSheetNoteFromCSVError(errorMessage error) (SheetNote, IndexerInstruments, error) {
-	return mat.Dense{}, make(IndexerInstruments), errorMessage
+	return mat.NewDense(0, 0, nil), make(IndexerInstruments), errorMessage
 }

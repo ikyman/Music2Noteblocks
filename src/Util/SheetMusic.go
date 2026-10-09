@@ -26,7 +26,7 @@ type AudioSheetIndexer struct {
 // How It works: Ticks are the fundamental timespeed of minecraft. Thus, our representations shall just be "What note gets played in each 1/20th second interval"
 func LoadTrainingOGGFolder(trainingFolderFilePath string ) []AudioSheetIndexer{
 	// Warning! No methodology for checking that the Segment size is the same as the SheetNotes Size
-	musicPages := make([]MusicPage, 0);
+	musicPages := make([]AudioSheetIndexer, 0);
 
 	oggFilename := filepath.Join(trainingFolderFilePath, filepath.Base(trainingFolderFilePath)+".ogg")
 
@@ -41,9 +41,9 @@ func LoadTrainingOGGFolder(trainingFolderFilePath string ) []AudioSheetIndexer{
 			log.Fatal(err)
 		}
 		musicPages = append(musicPages, AudioSheetIndexer{
-			Segment: musicAudioSegments[i],
-			SheetNotesCSV: sheetNotesCSV,
-			SheetNoteIndex: recommendedIndexer,
+			Audio: musicAudioSegments[i],
+			Sheet: sheetNotesCSV,
+			Indexer: recommendedIndexer,
 		})
 	}
 
