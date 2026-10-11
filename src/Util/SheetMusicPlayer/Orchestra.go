@@ -31,37 +31,34 @@ func (orch *Orchestra) AddInstrument(newInstrument Instrument) {
 	orch.orchestraInstruments[newInstrument.instrumentName] = newInstrument
 }
 
-func (orch *Orchestra) PlayMusic(musicToPlay utilitiesBeep.SheetNote) {
-	for _, notesAtTime := range musicToPlay.NotesByTime {
-		time.Sleep(time.Duration(1000/orch.beatsPerSecond)*time.Millisecond)
-		if notesAtTime == nil {
-			continue
-		}
-		for instrumentName, pitch := range notesAtTime {
-			instrument, ok := orch.orchestraInstruments[instrumentName]
+func (orch *Orchestra) PlayMusic(musicToPlay utilitiesBeep.SheetNote, indexer utilitiesBeep.IndexerInstruments) {
+	total_ticks, cols := musicToPlay.Dims()
 
+	for tick := range total_ticks {
+		time.Sleep(time.Duration(1000/orch.beatsPerSecond)*time.Millisecond)
+		for col := range cols{
+			pitch := int(musicToPlay.At(tick, col))
+			if pitch == 0 {
+				continue
+			}
+			instrumentName := indexer[col]
+			instrument, ok := orch.orchestraInstruments[instrumentName]
 			if !ok {
 				continue
 			}
 			go instrument.playNote(pitch)
 		}
-		
 	}
 }
 
-func (orch *Orchestra) MissingInstruments(musicToPlay utilitiesBeep.SheetNote) []string {
-	mentioned := make(map[string]struct{})
-	for _, notesAtTime := range musicToPlay.NotesByTime {
-		if notesAtTime == nil {
-			continue
-		}
-		for instrumentName := range notesAtTime {
-			mentioned[instrumentName] = struct{}{}
-		}
+func (orch *Orchestra) MissingInstruments(indexer utilitiesBeep.IndexerInstruments) []string {
+	mentioned := make([]string, 0)
+	for _, instrumentName := range indexer {
+		mentioned = append(mentioned, instrumentName)
 	}
 
 	var missing []string
-	for instrumentName := range mentioned {
+	for _, instrumentName := range mentioned {
 		if _, ok := orch.orchestraInstruments[instrumentName]; !ok {
 			missing = append(missing, instrumentName)
 		}
