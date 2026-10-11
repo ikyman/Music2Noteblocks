@@ -16,7 +16,7 @@ type Instrument struct {
 
 func NewInstrument(instrumentName string) Instrument {
 	return Instrument{
-		instrumentName: utilitiesBeep.InstrumentNameFor(instrumentName),
+		instrumentName: utilitiesBeep.InstrumentAliasFor(instrumentName),
 		midBeat:        utilitiesBeep.LoadAudioFileOgg("./Util/InstrumentBeats/" + instrumentName + ".ogg"),
 	}
 }

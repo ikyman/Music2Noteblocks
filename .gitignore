@@ -32,4 +32,4 @@ go.work.sum
 # .vscode/
 
 # Training Oggs: I'm not sure about the copyright situation
-src/TrainingTesting/trainingOggs
+src/TrainingTesting/trainingData

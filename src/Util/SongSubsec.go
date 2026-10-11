@@ -23,7 +23,6 @@ type SongSegment struct{
 	refersToSong *SongReference
 }
 
-// Note to self: Go find the codingGuru best practice for this sort of thing. Command? Visitor?
 func LoadAudioFileOgg(oggFile string ) SongReference {
 	f, err := os.Open(oggFile)
 	if err != nil {

@@ -53,12 +53,6 @@ func SliceSongIntoSegments(songRef *SongReference, segmentLengthSeconds float32)
 }
 
 func main() {
-	dir, _ := os.Getwd()
-	fmt.Println("Working dir:", dir)
-
-	/* Filepaths are based off of where powershell that calls the go run command was run.
-	 * That'll take a little getting used to!
-	 */
 	oggAbsPath, _ := filepath.Abs("./TrainingTesting/trainingOggs/shop1DeltaRune.ogg") 
 	fmt.Println(oggAbsPath)
 
