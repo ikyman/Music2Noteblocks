@@ -6,16 +6,10 @@ import (
 	"gonum.org/v1/gonum/mat"
 
 	"NoteblockRobot/Util"
-	"NoteblockRobot/Util/SheetMusicPlayer"
 )
 
 func init(){
 	INSTUMENT_COLUMNS = [ASSUMED_MAX_INSTRUMENTS]string{
-		"cow_bell",
-		"didgeridoo",
-		"bit",
-		"banjo",
-		"pling",
 		"trumpet",
 		"trumpet_exposed",
 		"trumpet_weathered",
@@ -23,18 +17,6 @@ func init(){
 	}
 }
 
-
-
-func instrumentColumnIndex(instrumentName string) (int, bool) {
-	canonicalName := sheetMusicPlayer.InstrumentAliasFor(instrumentName)
-	idx := 0
-	for ; idx < len(INSTUMENT_COLUMNS); idx++{
-		if canonicalName == INSTUMENT_COLUMNS[idx]{
-			return idx, true
-		}
-	}
-	return -1, false
-}
 // Half Written by the AI, who didn't understand me.
 // The other half was written by me, who didn't understand the AI.
 func SongSegment2Matrix(songSeg utilitiesBeep.SongSegment) mat.Matrix {
