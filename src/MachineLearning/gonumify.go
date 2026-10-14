@@ -8,15 +8,6 @@ import (
 	"NoteblockRobot/Util"
 )
 
-func init(){
-	INSTUMENT_COLUMNS = [ASSUMED_MAX_INSTRUMENTS]string{
-		"trumpet",
-		"trumpet_exposed",
-		"trumpet_weathered",
-		"trumpet_oxidized",
-	}
-}
-
 // Half Written by the AI, who didn't understand me.
 // The other half was written by me, who didn't understand the AI.
 func SongSegment2Matrix(songSeg utilitiesBeep.SongSegment) mat.Matrix {

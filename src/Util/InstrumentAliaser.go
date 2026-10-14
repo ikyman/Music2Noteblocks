@@ -34,6 +34,10 @@ func init() {
 		13: "flute",
 		14: "iron_xylophone",
 		15: "xylophone",
+		16: "trumpet",
+		17: "trumpet_exposed",
+		18: "trumpet_weathered",
+		19: "trumpet_oxidized",
 	}
 
 	instrumentNameAliaser = map[string]string{
