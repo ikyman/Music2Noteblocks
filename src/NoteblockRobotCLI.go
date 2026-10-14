@@ -3,12 +3,15 @@ package main
 
 import(
 	"fmt"
-	"path/filepath"
+	"log"
 	"os"
+	"path/filepath"
+
+	"github.com/sqweek/dialog"
+
 	"NoteblockRobot/Util"
 	"NoteblockRobot/Util/SheetMusicPlayer"
 	_"NoteblockRobot/MachineLearning"
-
 )
 
 var (
@@ -20,27 +23,79 @@ func init() {
 }
 
 func main(){
+	orchest := sheetMusicPlayer.EmptyOrchestra();
+	orchest.AddInstrument(sheetMusicPlayer.NewInstrument("harp")) 
+
+
+	/* Filepaths are based off of where powershell that calls the go run command was run.
+	 * That'll take a little getting used to!
+	 */
+	testTrainFilePath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
+
+	dir, _ := os.Getwd()
+	fmt.Println("Working dir:", dir)
+	fmt.Println("\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\")
+
 	var user_input string;
+
 	fmt.Println("Golang Noteblock to Robot application commad line interface")
-	fmt.Println("l : Listen to Training music")
-	fmt.Println("")
+	fmt.Println("l : Listen to either a csv or an ogg, depending on which file is chosen.") 
+	fmt.Println("lp : Paired Listening: a .ogg playing at the same time as the .csv")
+	/*fmt.Println("lra : Listen to raw audiofile")
+	fmt.Println("lrc : Listen to raw csv")*/
+	fmt.Println("s : Slice music with the music Gio UI-ed music slicer")
+	fmt.Println("t : Attempt training using the default training folder.")
+	fmt.Println("b : Create Mineflayer bot from a CSV or collection of CSVs")
 
 	fmt.Scanln(&user_input)
 	if (user_input == "l"){
-		absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
+		filename, err := dialog.File().SetStartDir(testTrainFilePath).Load()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		dirEntries, _ := os.ReadDir(absFilepath)
-		var sheetMusics []utilitiesBeep.MusicPage;
+		fileExtension := filename[len(filename)-4:]
+
+		if (fileExtension) == ".csv"{
+			sn, ii, _ := utilitiesBeep.LoadSheetNoteFromCSV(filename)
+			orchest.PlayMusic(sn,ii)
+		}else if (fileExtension) == ".ogg"{
+			log.Fatal("Not yet implemented!")
+		}else{
+			log.Fatal("Unknown file extension!")
+		}
+	}
+
+	if user_input == "lp"{
+		selectedFolder, err := dialog.Directory().SetStartDir(testTrainFilePath).Browse()
+		if err != nil {
+			log.Fatal(err)
+		}
+	
+		musicPair := utilitiesBeep.LoadTrainingOGGFolder(selectedFolder);
+		fmt.Println(musicPairs)
+		log.Fatal("TODO: Finish this function. Requires go run or something of that sort.")
+	}
+
+	if (user_input == "s"){
+		RunSliceGUI()
+	}
+	if (user_input == "t"){
+		dirEntries, _ := os.ReadDir(testTrainFilePath)
+		var musicPairs []utilitiesBeep.AudioSheetIndexer;
 	
 		for _, dirEntry := range dirEntries{
 			if (dirEntry.IsDir()){
-				sheetMusics = utilitiesBeep.LoadTrainingOGGFolder(absFilepath + "/" + dirEntry.Name())
+				sheetMusics = utilitiesBeep.LoadTrainingOGGFolder(testTrainFilePath + "/" + dirEntry.Name())
 			}
 		}
-		orchestra := sheetMusicPlayer.EmptyOrchestra();
-		orchestra.AddInstrument(sheetMusicPlayer.NewInstrument("harp"));
-	
-		orchestra.PlayMusic(sheetMusics[0].SheetNotesCSV);
+		orchest.PlayMusic(sheetMusics[0].SheetNotesCSV);
+
+		log.Fatal("Jumble of Matrixies not yet ready for backpropagation!")
+	}
+
+	if (user_input == "b"){
+
 	}
 
 }
