@@ -1,28 +1,6 @@
 
 package utilitiesBeep
 
-import(
-	"fmt"
-	"os"
-
-	"time"
-	"github.com/gopxl/beep/v2"
-
-	"path/filepath"
-)
-
-
-func bufferSubsection(buff beep.Buffer, f beep.Format, startLoc float32 , endLoc float32 ) (beep.Streamer){
-	subsectionBuffer := beep.NewBuffer(f);
-	fullStream := buff.Streamer(0, buff.Len())
-	subsectionBuffer.Append(fullStream);
-	subsecStart := (f.SampleRate.N(time.Millisecond*time.Duration(int(1000*startLoc))));
-	subsecStart = max(0, subsecStart)
-	subsecEnd := (f.SampleRate.N(time.Millisecond*time.Duration(int(1000*endLoc))));
-	subsecEnd = min(buff.Len(), subsecEnd)
-	return subsectionBuffer.Streamer(subsecStart, subsecEnd);
-}
-
 func SliceSongIntoSegments(songRef *SongReference, segmentLengthSeconds float32) []SongSegment {
 	if songRef == nil || songRef.SongBuffer == nil || segmentLengthSeconds <= 0 {
 		return []SongSegment{}
@@ -50,10 +28,4 @@ func SliceSongIntoSegments(songRef *SongReference, segmentLengthSeconds float32)
 	}
 
 	return segments
-}
-
-func main() {
-	oggAbsPath, _ := filepath.Abs("./TrainingTesting/trainingOggs/shop1DeltaRune.ogg") 
-	fmt.Println(oggAbsPath)
-
 }
