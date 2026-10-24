@@ -39,7 +39,7 @@ func LoadSheetNoteFromCSV(csvPath string) (SheetNote, IndexerInstruments, error)
 			continue
 		}
 
-		csvIndexerInstruments[colIndex] = InstrumentAliasFor(instrument)
+		csvIndexerInstruments[colIndex-1] = InstrumentAliasFor(instrument)
 	}
 
 	sheetNoteNumberOfTicks := len(rows) -1

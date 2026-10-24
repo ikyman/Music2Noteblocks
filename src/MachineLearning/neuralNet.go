@@ -21,10 +21,10 @@ type PoolLayer struct{
 	// Has to support max pool & average pool.
 }
 
-func newFullLayer(rows int, cols int){
-	var returnNNLayer NNLayer = new(NNLayer);
-	returnNNLayer.weights = mat.NewDense(rows, cols);
-	returnNNLayer.biases = mat.NewDense(rows, cols);
+func newFullLayer(rows int, cols int) NNLayer {
+	var returnNNLayer NNLayer = NNLayer{};
+	returnNNLayer.weights = mat.NewDense(rows, cols, nil);
+	returnNNLayer.biases = mat.NewDense(rows, cols, nil);
 
 	return returnNNLayer;
 }
