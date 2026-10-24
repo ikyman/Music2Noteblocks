@@ -29,6 +29,26 @@ func newFullLayer(rows int, cols int) NNLayer {
 	return returnNNLayer;
 }
 
+/* I call it "Shallower" because obstensibly ML Backprop is based off the chainrule.
+ * Error output = E(Ln(Ln-1( you get the point)))
+ * E is wrapped in less parenthesis, so it's shallower!
+ * Plus, what else would I label this variable name?
+ */
+func (currentLayer NNLayer) ChainDerivative(shallowerErrorDerivative mat.Matrix){
+	shallowR, shallowC := shallowerError.Dims()
+	currentR, currentC := currentLayer.Dims()
+
+	if (shallowR != currentC){
+		log.Fatal("I had sanity Checking to ensure the layers could multiply, and I assumed that that would allow the chain rule to work. It appears that assumption was wrong!")
+		// If this indeed triggers, try swapping the order in which the matrixies are multiplied.
+		// If that also doesn't work, back to the drawing board! This time with matrix derivative dimensions! Yaaaaaaaaay...
+	}
+
+	dLayer_dLayerInput = currentLayer.weights
+	
+	ReturnedChainDerivative = mat.Mul(shallowerErrorDerivative, dLayer_dLayerInput)
+}
+
 
 type NeuralNet struct{
 	trainingInput []mat.Matrix;
