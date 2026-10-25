@@ -8,6 +8,7 @@ import(
 	"path/filepath"
 
 	"github.com/sqweek/dialog"
+	"github.com/gopxl/beep/v2/speaker"
 
 	"NoteblockRobot/Util"
 	"NoteblockRobot/Util/SheetMusicPlayer"
@@ -25,7 +26,6 @@ func init() {
 func main(){
 	orchest := sheetMusicPlayer.EmptyOrchestra();
 	orchest.AddInstrument(sheetMusicPlayer.NewInstrument("harp")) 
-
 
 	/* Filepaths are based off of where powershell that calls the go run command was run.
 	 * That'll take a little getting used to!
@@ -60,7 +60,11 @@ func main(){
 			sn, ii, _ := utilitiesBeep.LoadSheetNoteFromCSV(filename)
 			orchest.PlayMusic(sn,ii)
 		}else if (fileExtension) == ".ogg"{
-			log.Fatal("Not yet implemented!")
+			songRef := utilitiesBeep.LoadAudioFileOgg(filename)
+
+			songRefStreamer := songRef.SongBuffer.Streamer(0, songRef.SongBuffer.Len())
+			speaker.Init(songRef.SongFormat.SampleRate, 90)
+			speaker.PlayAndWait(songRefStreamer);
 		}else{
 			log.Fatal("Unknown file extension!")
 		}
@@ -72,9 +76,17 @@ func main(){
 			log.Fatal(err)
 		}
 	
-		musicPair := utilitiesBeep.LoadTrainingOGGFolder(selectedFolder);
-		fmt.Println(musicPairs)
-		log.Fatal("TODO: Finish this function. Requires go run or something of that sort.")
+		musicPair := utilitiesBeep.LoadTrainingOGGFolder(selectedFolder)
+		if len(musicPair) == 0 {
+			log.Fatal("LoadTrainingOGGFolder returned no AudioSheetIndexer slices")
+		}
+
+		firstPair := musicPair[0]
+		audioBuffer := firstPair.Audio.AsBuffer()
+		speaker.Play(audioBuffer.Streamer(0, audioBuffer.Len()))
+		orchest.PlayMusic(firstPair.Sheet, firstPair.Indexer)
+
+		log.Fatal("TODO: loop over the full []AudioSheetIndexer from LoadTrainingOGGFolder, not only index 0")
 	}
 
 	if (user_input == "s"){
@@ -86,15 +98,17 @@ func main(){
 	
 		for _, dirEntry := range dirEntries{
 			if (dirEntry.IsDir()){
-				sheetMusics = utilitiesBeep.LoadTrainingOGGFolder(testTrainFilePath + "/" + dirEntry.Name())
+				musicPairs = utilitiesBeep.LoadTrainingOGGFolder(testTrainFilePath + "/" + dirEntry.Name())
 			}
 		}
-		orchest.PlayMusic(sheetMusics[0].SheetNotesCSV);
+		fmt.Println(musicPairs)
+		//orchest.PlayMusic(musicPairs[0].SheetNotesCSV);
 
 		log.Fatal("Jumble of Matrixies not yet ready for backpropagation!")
 	}
 
 	if (user_input == "b"){
+		log.Fatal("Custom Mineflayer Bots not yet created!")
 
 	}
 

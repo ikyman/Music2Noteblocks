@@ -49,23 +49,3 @@ func LoadTrainingOGGFolder(trainingFolderFilePath string ) []AudioSheetIndexer{
 
 	return musicPages
 }
-
-/*func main(){
-	absFilepath, _ := filepath.Abs("./TrainingTesting/trainingOggs")
-
-	selectedFolder, err := dialog.Directory().SetStartDir(absFilepath).Browse()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	musicPages := LoadTrainingOGGFolder(selectedFolder);
-
-	orchest := sheetMusicPlayer.EmptyOrchestra();
-	orchest.AddInstrument(sheetMusicPlayer.NewInstrument("harp")) 
-
-	//orchest.PlayMusic(musicPages[0].SheetNotesCSV);
-
-	fmt.Println(mCraftnBlockmLearning.SheetNote2Matrix(musicPages[0].SheetNotesCSV))
-
-	
-}*/
